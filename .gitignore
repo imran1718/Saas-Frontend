@@ -1,0 +1,83 @@
+# ====================================================================
+# 1. SYSTEM & IDEs
+# ====================================================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ====================================================================
+# 2. FRONTEND (Next.js / Node.js)
+# ====================================================================
+# Dependencies
+node_modules/
+/jspm_packages/
+.npm
+.eslintcache
+
+# Next.js Build Outputs
+.next/
+out/
+build/
+dist/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing & Coverage
+/coverage
+.nyc_output
+
+# ====================================================================
+# 3. BACKEND & DATABASES
+# ====================================================================
+# Python Byte-compiled / optimized files (for SQLAlchemy/FastAPI/Flask)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments (Python)
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Package managers (Python)
+.pytest_cache/
+.poetry/
+*.egg-info/
+
+# Local SQLite databases (just in case you switch from MySQL)
+*.db
+*.sqlite3
+*.sqlite3-journal
+
+# ====================================================================
+# 4. LOGS, ENVIRONMENT, & SECRETS (NEVER COMMIT THESE)
+# ====================================================================
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Vercel deployment artifacts
+.vercel
