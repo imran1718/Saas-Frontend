@@ -4,6 +4,16 @@ const logger = require('./utils/logger');
 const { sequelize } = require('./models');
 const { getRedisClient } = require('./config/redis.config');
 const cleanupJob = require('./jobs/cleanupExpiredTokens.job');
+const webhookProcessWorker = require('./workers/webhookProcess.worker');
+const trackingPollWorker = require('./workers/trackingPoll.worker');
+const ndrDetectionWorker = require('./workers/ndrDetection.worker');
+const { startScheduler, stopScheduler } = require('./queues/trackingPollScheduler');
+const monthlyStatementWorker = require('./workers/monthlyStatement.worker');
+const { scheduleMonthlyStatements } = require('./schedulers/monthlyStatementScheduler');
+const planRenewalWorker = require('./workers/planRenewal.worker');
+const { schedulePlanRenewals } = require('./schedulers/planRenewalScheduler');
+const notificationDispatchWorker = require('./queue/workers/notificationDispatch.worker');
+
 
 const startServer = async () => {
   try {
@@ -14,9 +24,31 @@ const startServer = async () => {
     // Initialize Redis
     getRedisClient();
 
+    // Initialize central event subscriptions mapping (Module 14 Hook)
+    const { initializeSubscriptions } = require('./events/eventSubscriptions');
+    initializeSubscriptions();
+
     // Start background jobs
+
     cleanupJob.start();
     logger.info('[Jobs] Started background jobs.');
+
+    // Start BullMQ workers
+    logger.info('[Workers] Webhook process worker started.');
+    logger.info('[Workers] Tracking poll worker started.');
+    logger.info('[Workers] NDR detection worker started.');
+
+    // Start repeatable tracking poll scheduler
+    await startScheduler();
+    logger.info('[Scheduler] Tracking poll scheduler registered.');
+
+    // Start repeatable billing statements scheduler
+    await scheduleMonthlyStatements();
+    logger.info('[Scheduler] Monthly billing statements scheduler registered.');
+
+    // Start repeatable subscription renewal scheduler
+    await schedulePlanRenewals();
+    logger.info('[Scheduler] Subscription plan renewals scheduler registered.');
 
     // Start Express server
     const server = app.listen(config.port, () => {
@@ -30,6 +62,14 @@ const startServer = async () => {
         logger.info('[Server] HTTP server closed.');
       });
       cleanupJob.stop();
+      await webhookProcessWorker.close();
+      await trackingPollWorker.close();
+      await ndrDetectionWorker.close();
+      await monthlyStatementWorker.close();
+      await planRenewalWorker.close();
+      await notificationDispatchWorker.close();
+      await stopScheduler();
+
       await sequelize.close();
       const redisClient = getRedisClient();
       if (redisClient) {

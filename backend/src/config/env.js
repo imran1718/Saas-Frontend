@@ -66,6 +66,17 @@ module.exports = {
     encryptionKey: process.env.TOTP_ENCRYPTION_KEY,
   },
 
+  provider: {
+    credentialsEncryptionKey: process.env.PROVIDER_CREDENTIALS_ENCRYPTION_KEY || '',
+    healthCheckStaleMinutes: parseInt(process.env.PROVIDER_HEALTH_CHECK_STALE_MINUTES, 10) || 10,
+    defaultTimeoutMs: parseInt(process.env.PROVIDER_DEFAULT_TIMEOUT_MS, 10) || 8000,
+  },
+
+  shipment: {
+    rateQuoteExpiryMinutes: parseInt(process.env.SHIPMENT_RATE_QUOTE_EXPIRY_MINUTES, 10) || 15,
+    rateComparisonTimeoutMs: parseInt(process.env.SHIPMENT_RATE_COMPARISON_TIMEOUT_MS, 10) || 10000,
+  },
+
   security: {
     bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12,
   },
@@ -86,5 +97,18 @@ module.exports = {
       secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
       bucket: process.env.R2_BUCKET,
     }
+  },
+  ndr: {
+    autoRtoThreshold: parseInt(process.env.NDR_AUTO_RTO_THRESHOLD, 10) || 3,
+    slaHours: parseInt(process.env.NDR_SLA_HOURS, 10) || 48,
+  },
+  billing: {
+    gstRatePercent: parseInt(process.env.GST_RATE_PERCENT, 10) || 18,
+    entityGstin: process.env.BILLING_ENTITY_GSTIN || '33ABCDE1234F1Z5',
+    entityLegalName: process.env.BILLING_ENTITY_LEGAL_NAME || 'ShippingSaaS Logi Solutions Private Limited',
+    entityAddress: process.env.BILLING_ENTITY_ADDRESS || 'Plot No. 42, 3rd Floor, Sector 4, Chennai, TN, India',
+    entityState: process.env.BILLING_ENTITY_STATE || 'Tamil Nadu',
+    fyStartMonth: parseInt(process.env.INVOICE_FINANCIAL_YEAR_START_MONTH, 10) || 4,
+    statementDay: parseInt(process.env.MONTHLY_STATEMENT_DAY_OF_MONTH, 10) || 1,
   },
 };

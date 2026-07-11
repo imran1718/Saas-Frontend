@@ -1,4 +1,5 @@
 const { PickupAddress, Tenant, sequelize } = require('../models');
+const { Op } = require('sequelize');
 const companyProfileService = require('./companyProfile.service');
 const auditService = require('./audit.service');
 
@@ -15,10 +16,10 @@ class PickupAddressService {
 
     // Basic search across label, contact_name, city
     if (search) {
-      whereClause[sequelize.Op.or] = [
-        { label: { [sequelize.Op.iLike]: `%${search}%` } },
-        { contact_name: { [sequelize.Op.iLike]: `%${search}%` } },
-        { city: { [sequelize.Op.iLike]: `%${search}%` } },
+      whereClause[Op.or] = [
+        { label: { [Op.iLike]: `%${search}%` } },
+        { contact_name: { [Op.iLike]: `%${search}%` } },
+        { city: { [Op.iLike]: `%${search}%` } },
       ];
     }
 
@@ -108,16 +109,9 @@ class PickupAddressService {
           { where: { tenant_id: tenantId, is_default: true, is_active: true }, transaction: t }
         );
       } else if (data.is_default === false && address.is_default) {
-        // Prevent unsetting default directly if it's the only one
-        const activeCount = await PickupAddress.count({
-          where: { tenant_id: tenantId, is_active: true },
-          transaction: t,
-        });
-        if (activeCount > 1) {
-          const error = new Error('Set another address as default before removing the default status from this one');
-          error.code = 'DEFAULT_ADDRESS_REQUIRED';
-          throw error;
-        }
+        const error = new Error('Set another address as default before removing the default status from this one');
+        error.code = 'DEFAULT_ADDRESS_REQUIRED';
+        throw error;
       }
 
       updatedAddress = await address.update(data, { transaction: t });
@@ -170,16 +164,9 @@ class PickupAddressService {
       if (!address) throw new Error('Address not found');
 
       if (address.is_default) {
-        const activeCount = await PickupAddress.count({
-          where: { tenant_id: tenantId, is_active: true, id: { [sequelize.Op.ne]: id } },
-          transaction: t,
-        });
-
-        if (activeCount > 0) {
-          const error = new Error('Set another address as default before deleting this one');
-          error.code = 'DEFAULT_ADDRESS_REQUIRED';
-          throw error;
-        }
+        const error = new Error('Set another address as default before deleting this one');
+        error.code = 'DEFAULT_ADDRESS_REQUIRED';
+        throw error;
       }
 
       // Soft delete

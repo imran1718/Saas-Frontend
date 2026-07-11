@@ -35,7 +35,7 @@ function VerifyEmailContent() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <h2 className="text-center text-2xl font-extrabold text-gray-900">Email Verification</h2>
+        <h2 className="text-center text-2xl font-extrabold text-slate-900 dark:text-white">Email Verification</h2>
       </CardHeader>
       <CardContent className="flex flex-col items-center">
         {status === 'loading' && <Spinner className="w-8 h-8 mb-4" />}
@@ -43,7 +43,7 @@ function VerifyEmailContent() {
         {status === 'error' && <Alert type="error" message={message} className="w-full mb-4" />}
         
         {status !== 'loading' && (
-          <Link href="/login" className="text-primary-600 hover:text-primary-700 font-medium">
+          <Link href="/login" className="text-indigo-650 dark:text-indigo-400 hover:text-indigo-750 font-bold hover:underline">
             Go to Login
           </Link>
         )}
@@ -54,7 +54,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#070b14] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <Suspense fallback={<Spinner />}>
         <VerifyEmailContent />
       </Suspense>

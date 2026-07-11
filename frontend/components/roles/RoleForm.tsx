@@ -79,7 +79,7 @@ export const RoleForm = ({ initialData }: Props) => {
       </div>
 
       <div>
-        <h2 className="text-xl font-bold mb-4">Permissions</h2>
+        <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Permissions</h2>
         <PermissionMatrix 
           catalogue={catalogue} 
           selectedKeys={selectedKeys} 
@@ -88,7 +88,7 @@ export const RoleForm = ({ initialData }: Props) => {
         />
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t">
+      <div className="flex justify-end space-x-3 pt-6 border-t border-slate-100 dark:border-white/[0.06]">
         <Button variant="outline" type="button" onClick={() => router.push('/settings/roles')}>
           Cancel
         </Button>

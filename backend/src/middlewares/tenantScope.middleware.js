@@ -18,6 +18,8 @@ const tenantScopeMiddleware = (req, res, next) => {
     return next();
   }
 
+  req.tenant = { id: req.user.tenant_id };
+
   // Store the tenant_id in the current async execution context
   tenantStorage.run(req.user.tenant_id, () => {
     next();

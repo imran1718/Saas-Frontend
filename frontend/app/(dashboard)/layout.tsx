@@ -4,13 +4,22 @@ import React from 'react';
 import { useAuth } from '@/lib/authStore';
 import { useRouter } from 'next/navigation';
 import { Spinner } from '@/components/ui/Spinner';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { TopBar } from '@/components/layout/TopBar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><Spinner className="w-10 h-10" /></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#080a10]">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner className="w-8 h-8 text-indigo-500" />
+          <p className="text-slate-400 text-sm">Loading…</p>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -19,22 +28,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <span className="text-xl font-bold text-primary-600">ShippingSaaS</span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-gray-700 mr-4">Role: {user.role.name}</span>
-            </div>
+    <div className="flex h-screen bg-slate-100 dark:bg-[#080a10] overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Main content area */}
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        {/* Sticky top bar */}
+        <TopBar />
+
+        {/* Scrollable page content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {children}
           </div>
-        </div>
-      </nav>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {children}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

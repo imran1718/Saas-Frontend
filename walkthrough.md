@@ -23,8 +23,8 @@ Created standard REST endpoints and documented them in `docs/roles.openapi.yaml`
 - **State Management**: Updated `authStore.ts` to persist the loaded `permissions` array for the current user session.
 - **Helper Hook**: Added a `usePermission(key)` React hook that returns true/false, making it trivial to hide or show buttons contextually.
 - **Role Administration Pages**:
-  - `/settings/roles`: A dashboard table displaying roles, assignments, and system-locked status.
-  - `/settings/roles/new` & `/settings/roles/[roleId]`: The create/edit forms.
+  - `settings/roles`: A dashboard table displaying roles, assignments, and system-locked status.
+  - `settings/roles/new` & `settings/roles/[roleId]`: The create/edit forms.
   - **PermissionMatrix Component**: A responsive checkbox grid that groups permissions logically by module, complete with "Select All" toggles.
 
 ## Verification

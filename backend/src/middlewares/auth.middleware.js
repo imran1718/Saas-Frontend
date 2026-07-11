@@ -76,7 +76,10 @@ const authenticate = async (req, res, next) => {
       }
     }
 
-    next();
+    req.tenant = { id: payload.tenant_id };
+
+    const { tenantScopeMiddleware } = require('./tenantScope.middleware');
+    tenantScopeMiddleware(req, res, next);
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
       return error(res, { code: 'TOKEN_EXPIRED', message: 'Token expired' }, 401);

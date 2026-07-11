@@ -30,6 +30,7 @@ class CompanyProfileService {
 
     // Re-evaluate profile_completed flag
     await this.evaluateProfileCompletion(tenantId);
+    await tenant.reload();
 
     if (user) {
       await auditService.log({

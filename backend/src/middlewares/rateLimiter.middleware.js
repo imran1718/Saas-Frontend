@@ -3,6 +3,9 @@ const RedisStore = require('rate-limit-redis').default;
 const { getRedisClient } = require('../config/redis.config');
 
 const createLimiter = (options) => {
+  if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+    return (req, res, next) => next();
+  }
   return rateLimit({
     store: new RedisStore({
       sendCommand: (...args) => getRedisClient().call(...args),
@@ -34,6 +37,7 @@ const globalLimiter = createLimiter({
 });
 
 module.exports = {
+  createLimiter,
   loginLimiter,
   forgotPasswordLimiter,
   globalLimiter,

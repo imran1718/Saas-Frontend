@@ -68,21 +68,21 @@ export const DocumentUploadCard = () => {
   const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:5000';
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 max-w-2xl mt-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">KYC Documents</h3>
+    <div className="bg-white dark:bg-[#131620] p-6 rounded-xl shadow-sm border border-slate-100 dark:border-white/[0.06] max-w-2xl mt-6">
+      <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">KYC Documents</h3>
       
-      {error && <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm mb-4">{error}</div>}
+      {error && <div className="bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 p-3 rounded-md text-sm border border-red-200 dark:border-red-900/30 mb-4">{error}</div>}
 
       <div className="flex items-center space-x-4 mb-6">
-        <select value={docType} onChange={(e) => setDocType(e.target.value)} className="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
-          <option value="pan">PAN Card</option>
-          <option value="gst_certificate">GST Certificate</option>
-          <option value="address_proof">Address Proof</option>
-          <option value="other">Other</option>
+        <select value={docType} onChange={(e) => setDocType(e.target.value)} className="block rounded-md border-slate-300 dark:border-white/[0.08] bg-white dark:bg-[#0f1117] text-slate-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border outline-none">
+          <option value="pan" className="dark:bg-[#131620]">PAN Card</option>
+          <option value="gst_certificate" className="dark:bg-[#131620]">GST Certificate</option>
+          <option value="address_proof" className="dark:bg-[#131620]">Address Proof</option>
+          <option value="other" className="dark:bg-[#131620]">Other</option>
         </select>
         
         <div className="relative">
-          <label className={`flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+          <label className={`flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 cursor-pointer transition ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <UploadCloud className="w-4 h-4 mr-2" />
             {isUploading ? `Uploading ${uploadProgress}%` : 'Upload Document'}
             <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={handleUpload} disabled={isUploading} />
@@ -91,20 +91,20 @@ export const DocumentUploadCard = () => {
       </div>
 
       <div className="space-y-3">
-        {loading ? <p className="text-gray-500 text-sm">Loading...</p> : documents.length === 0 ? (
-          <p className="text-gray-500 text-sm text-center py-4 border border-dashed rounded-lg">No documents uploaded yet.</p>
+        {loading ? <p className="text-slate-500 dark:text-slate-400 text-sm">Loading...</p> : documents.length === 0 ? (
+          <p className="text-slate-500 dark:text-slate-400 text-sm text-center py-4 border border-dashed border-slate-200 dark:border-white/[0.08] rounded-lg">No documents uploaded yet.</p>
         ) : (
           documents.map(doc => {
             const fileUrl = doc.file_url.startsWith('http') ? doc.file_url : `${backendUrl}${doc.file_url}`;
             return (
-              <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+              <div key={doc.id} className="flex items-center justify-between p-3 border border-slate-200 dark:border-white/[0.06] rounded-lg hover:bg-slate-50 dark:hover:bg-white/[0.02] transition">
                 <div className="flex items-center space-x-3">
-                  <FileText className="w-5 h-5 text-gray-400" />
+                  <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
                   <div>
-                    <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-600 hover:underline">
+                    <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
                       {doc.file_name}
                     </a>
-                    <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
+                    <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
                       <span className="uppercase">{doc.document_type.replace('_', ' ')}</span>
                       <span>•</span>
                       <span className="flex items-center">{getStatusIcon(doc.status)} <span className="ml-1 capitalize">{doc.status}</span></span>
@@ -112,7 +112,7 @@ export const DocumentUploadCard = () => {
                   </div>
                 </div>
                 {doc.status !== 'verified' && (
-                  <button onClick={() => handleDelete(doc.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50">
+                  <button onClick={() => handleDelete(doc.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-950/20 transition">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 )}

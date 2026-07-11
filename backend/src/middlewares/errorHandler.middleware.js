@@ -1,8 +1,18 @@
 const { error } = require('../utils/apiResponse');
 const logger = require('../utils/logger');
 const { AuthError, ConflictError } = require('../services/auth.service');
-const { AuthenticationError, ForbiddenError, NotFoundError } = require('../utils/errors');
+const {
+  AuthenticationError,
+  ForbiddenError,
+  NotFoundError,
+  OrderNotShippableError,
+  RateQuoteExpiredError,
+  ProviderShipmentCreationFailedError,
+  ShipmentNotCancellableError,
+  BadRequestError,
+} = require('../utils/errors');
 const { ValidationError } = require('joi');
+const { ProviderNotFoundError, ProviderCredentialsInvalidError, ProviderUnhealthyError } = require('../providers/errors');
 
 const errorHandler = (err, req, res, next) => {
   logger.error(`[ErrorHandler] ${err.name}: ${err.message}`, {
@@ -10,6 +20,28 @@ const errorHandler = (err, req, res, next) => {
     path: req.path,
     method: req.method,
   });
+
+  if (
+    err instanceof OrderNotShippableError ||
+    err instanceof RateQuoteExpiredError ||
+    err instanceof ProviderShipmentCreationFailedError ||
+    err instanceof ShipmentNotCancellableError ||
+    err instanceof BadRequestError
+  ) {
+    return error(res, { code: err.code, message: err.message }, err.statusCode);
+  }
+
+  if (err instanceof ProviderNotFoundError) {
+    return error(res, { code: err.code, message: err.message }, 404);
+  }
+
+  if (err instanceof ProviderCredentialsInvalidError) {
+    return error(res, { code: err.code, message: err.message }, 422);
+  }
+
+  if (err instanceof ProviderUnhealthyError) {
+    return error(res, { code: err.code, message: err.message }, 503);
+  }
 
   if (err instanceof AuthError || err instanceof AuthenticationError) {
     return error(res, { code: err.code || 'UNAUTHORIZED', message: err.message }, 401);

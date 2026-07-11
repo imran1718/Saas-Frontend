@@ -1,13 +1,13 @@
 import React from 'react';
 
 export const Card = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <div className={`bg-white shadow rounded-lg overflow-hidden ${className}`}>
+  <div className={`bg-white dark:bg-[#131620] shadow rounded-xl overflow-hidden border border-slate-200/50 dark:border-white/[0.06] ${className}`}>
     {children}
   </div>
 );
 
 export const CardHeader = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <div className={`px-6 py-5 border-b border-gray-200 ${className}`}>
+  <div className={`px-6 py-5 border-b border-slate-100 dark:border-white/[0.06] ${className}`}>
     {children}
   </div>
 );
@@ -19,7 +19,7 @@ export const CardContent = ({ children, className = '' }: { children: React.Reac
 );
 
 export const CardFooter = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <div className={`px-6 py-4 bg-gray-50 border-t border-gray-200 ${className}`}>
+  <div className={`px-6 py-4 bg-slate-50/50 dark:bg-[#10121a]/50 border-t border-slate-100 dark:border-white/[0.06] ${className}`}>
     {children}
   </div>
 );

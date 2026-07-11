@@ -27,6 +27,20 @@ module.exports = {
 
     if (newPermissions.length > 0) {
       await queryInterface.bulkInsert('permissions', newPermissions);
+
+      // Assign new permissions to the global owner role
+      const roles = await queryInterface.sequelize.query(
+        `SELECT id FROM roles WHERE name = 'owner' AND tenant_id IS NULL;`,
+        { type: Sequelize.QueryTypes.SELECT }
+      );
+
+      if (roles.length > 0) {
+        const rolePermissions = newPermissions.map((p) => ({
+          role_id: roles[0].id,
+          permission_id: p.id,
+        }));
+        await queryInterface.bulkInsert('role_permissions', rolePermissions);
+      }
     }
 
     // Now, update the existing permissions with description/module_name just in case they were blank

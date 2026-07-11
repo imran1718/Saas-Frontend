@@ -3,7 +3,65 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-background text-foreground antialiased;
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  /* ── Light mode (default) */
+  body {
+    @apply bg-slate-100 text-slate-900 antialiased;
+  }
+
+  /* ── Dark mode */
+  html.dark body {
+    @apply bg-[#080a10] text-slate-300;
+  }
+
+  /* Thin custom scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 999px; }
+  html.dark ::-webkit-scrollbar-thumb { background: #1e2130; }
+  ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+  html.dark ::-webkit-scrollbar-thumb:hover { background: #2a2f42; }
+}
+
+@layer utilities {
+  /* Light card */
+  .card {
+    @apply bg-white dark:bg-[#131620] border border-slate-200 dark:border-white/[0.06] rounded-2xl shadow-sm;
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    background: linear-gradient(135deg, #6366f1, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Indigo glow effect */
+  .glow-indigo {
+    box-shadow: 0 0 20px -5px rgba(99, 102, 241, 0.4);
+  }
+
+  /* Slide-in animation (used by notification dropdown) */
+  .animate-in { animation: animateIn 0.2s ease-out; }
+  .fade-in    { animation: fadeIn 0.15s ease-out; }
+  .slide-in-from-top-3 { animation: slideInFromTop 0.2s ease-out; }
+}
+
+@keyframes animateIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInFromTop {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

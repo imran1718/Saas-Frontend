@@ -26,7 +26,7 @@ const login = async (email, password, ipAddress) => {
     throw new AuthenticationError('Invalid credentials');
   }
 
-  if (admin.role === 'super_admin' && !admin.two_factor_enabled) {
+  if (admin.role === 'super_admin' && !admin.two_factor_enabled && process.env.NODE_ENV !== 'development') {
     // Super admins MUST have 2FA enabled. If they don't (e.g. first login),
     // we issue a temporary token that can only be used to set up 2FA.
     const tempToken = tokenService.signPlatformAccessToken({

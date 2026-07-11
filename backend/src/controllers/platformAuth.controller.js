@@ -22,7 +22,7 @@ const login = async (req, res, next) => {
 
     return success(res, {
       admin: result.admin,
-      accessToken: result.accessToken,
+      access_token: result.accessToken,
     }, 200);
   } catch (error) {
     next(error);
@@ -46,7 +46,7 @@ const verify2FA = async (req, res, next) => {
 
     return success(res, {
       admin: result.admin,
-      accessToken: result.accessToken,
+      access_token: result.accessToken,
     }, 200);
   } catch (error) {
     next(error);

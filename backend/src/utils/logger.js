@@ -5,12 +5,29 @@ const config = require('../config/env');
 
 const logDir = path.join(process.cwd(), 'logs');
 
+const safeStringify = (obj) => {
+  const seen = new WeakSet();
+  try {
+    return JSON.stringify(obj, (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return '[Circular]';
+        }
+        seen.add(value);
+      }
+      return value;
+    });
+  } catch (err) {
+    return '[Unserializable]';
+  }
+};
+
 const formats = {
   console: winston.format.combine(
     winston.format.colorize(),
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     winston.format.printf(({ level, message, timestamp, ...meta }) => {
-      const metaStr = Object.keys(meta).length ? JSON.stringify(meta) : '';
+      const metaStr = Object.keys(meta).length ? safeStringify(meta) : '';
       return `${timestamp} [${level}]: ${message} ${metaStr}`;
     })
   ),

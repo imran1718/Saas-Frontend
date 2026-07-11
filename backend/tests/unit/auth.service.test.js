@@ -13,6 +13,32 @@ jest.mock('../../src/models', () => ({
   sequelize: {
     transaction: jest.fn((cb) => cb()),
   },
+  CourierProvider: {
+    findOne: jest.fn().mockResolvedValue({ id: 'mock-provider-id' }),
+    findAll: jest.fn().mockResolvedValue([]),
+  },
+  TenantCourierAccess: {
+    create: jest.fn().mockResolvedValue({}),
+    bulkCreate: jest.fn().mockResolvedValue([]),
+  },
+  Wallet: {
+    create: jest.fn().mockResolvedValue({}),
+  },
+  SubscriptionPlan: {
+    findOne: jest.fn().mockResolvedValue({
+      id: 'mock-plan-id',
+      courier_access_tier: 'basic',
+    }),
+  },
+  TenantSubscription: {
+    create: jest.fn().mockResolvedValue({}),
+  },
+  PlanUsageTracking: {
+    create: jest.fn().mockResolvedValue({}),
+  },
+  PlanChangeHistory: {
+    create: jest.fn().mockResolvedValue({}),
+  },
 }));
 
 describe('Auth Service', () => {
