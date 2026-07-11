@@ -1,0 +1,28 @@
+# Module 15: Developer API Keys & Webhooks
+
+I have successfully implemented Module 15! Tenants can now issue API keys and register webhooks to receive real-time events.
+
+## Features Implemented
+
+### 1. API Keys & Authentication
+- **Data Models**: Created `ApiKey` and `ApiKeyUsageLog` models to track API keys and their usage.
+- **Service**: Implemented `ApiKeyService` which securely hashes keys using `SHA-256` and returns the raw key only once.
+- **Middleware**: Added `apiKeyAuth` to authenticate requests via `Authorization: Bearer <key>` and `apiKeyRateLimiter` to enforce tenant-level rate limiting using Redis.
+- **Routing**: Mounted `/api-keys` endpoints for tenants to manage their keys, and a sample `/public/orders` and `/public/shipments` API protected by keys and scopes.
+
+### 2. Outbound Webhooks
+- **Data Models**: Created `TenantWebhook` (stores URLs, secrets, subscribed events) and `WebhookDelivery` (logs HTTP requests/responses and retries).
+- **Security**: Added `webhookSigning.util.js` to calculate HMAC-SHA256 signatures of webhook payloads and set the `X-Webhook-Signature` header.
+- **Event Bus Integration**: Updated `eventSubscriptions.js` to trigger outbound webhooks dynamically based on any system event (e.g., `order.created`, `shipment.cancelled`).
+- **Reliability (BullMQ)**: Implemented a robust worker `webhookDelivery.worker.js` with exponential backoff and retries to deliver the webhooks.
+
+### 3. Frontend Dashboard
+Added pages to the Tenant Dashboard under Developer Settings:
+- [API Keys Settings](file:///e:/ship%20saas/Saas/frontend/app/(dashboard)/settings/api-keys/page.tsx): Generate, revoke, and monitor API usage.
+- [Webhooks Settings](file:///e:/ship%20saas/Saas/frontend/app/(dashboard)/settings/webhooks/page.tsx): Register endpoints, configure subscribed events, get secrets, and send test pings.
+- [Webhook Delivery Logs](file:///e:/ship%20saas/Saas/frontend/app/(dashboard)/settings/webhooks/[id]/page.tsx): Monitor outbound requests, payloads, and response status codes.
+
+## Verification
+- Migrations executed successfully.
+- Webhook Delivery worker is integrated into the central application loop (`server.js`).
+- Protected endpoints correctly deny access without a valid Bearer token.

@@ -39,7 +39,10 @@ const NotificationTemplate = require('./notificationTemplate.model');
 const NotificationPreference = require('./notificationPreference.model');
 const NotificationLog = require('./notificationLog.model');
 const InAppNotification = require('./inAppNotification.model');
-
+const ApiKey = require('./apiKey.model');
+const ApiKeyUsageLog = require('./apiKeyUsageLog.model');
+const TenantWebhook = require('./tenantWebhook.model');
+const WebhookDelivery = require('./webhookDelivery.model');
 
 // Platform Models
 const PlatformAdmin = require('./platformAdmin.model');
@@ -319,6 +322,29 @@ InAppNotification.belongsTo(Tenant, { foreignKey: 'tenant_id', as: 'tenant' });
 User.hasMany(InAppNotification, { foreignKey: 'user_id', as: 'inAppNotifications', onDelete: 'CASCADE' });
 InAppNotification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+// Tenant - ApiKey
+Tenant.hasMany(ApiKey, { foreignKey: 'tenant_id', as: 'apiKeys', onDelete: 'CASCADE' });
+ApiKey.belongsTo(Tenant, { foreignKey: 'tenant_id', as: 'tenant' });
+
+// User - ApiKey
+User.hasMany(ApiKey, { foreignKey: 'created_by', as: 'createdApiKeys', onDelete: 'CASCADE' });
+ApiKey.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+
+// ApiKey - ApiKeyUsageLog
+ApiKey.hasMany(ApiKeyUsageLog, { foreignKey: 'api_key_id', as: 'usageLogs', onDelete: 'CASCADE' });
+ApiKeyUsageLog.belongsTo(ApiKey, { foreignKey: 'api_key_id', as: 'apiKey' });
+
+// Tenant - TenantWebhook
+Tenant.hasMany(TenantWebhook, { foreignKey: 'tenant_id', as: 'webhooks', onDelete: 'CASCADE' });
+TenantWebhook.belongsTo(Tenant, { foreignKey: 'tenant_id', as: 'tenant' });
+
+// User - TenantWebhook
+User.hasMany(TenantWebhook, { foreignKey: 'created_by', as: 'createdWebhooks', onDelete: 'CASCADE' });
+TenantWebhook.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+
+// TenantWebhook - WebhookDelivery
+TenantWebhook.hasMany(WebhookDelivery, { foreignKey: 'tenant_webhook_id', as: 'deliveries', onDelete: 'CASCADE' });
+WebhookDelivery.belongsTo(TenantWebhook, { foreignKey: 'tenant_webhook_id', as: 'webhook' });
 
 module.exports = {
   sequelize,
@@ -367,4 +393,8 @@ module.exports = {
   NotificationPreference,
   NotificationLog,
   InAppNotification,
+  ApiKey,
+  ApiKeyUsageLog,
+  TenantWebhook,
+  WebhookDelivery,
 };

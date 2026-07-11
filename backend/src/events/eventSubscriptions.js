@@ -2,6 +2,7 @@
 
 const eventBus = require('./eventBus');
 const notificationService = require('../services/notification.service');
+const outboundWebhookService = require('../services/outboundWebhook.service');
 const logger = require('../utils/logger');
 
 // Centralized Event to Notification Hook Mapping Registry
@@ -21,8 +22,17 @@ function initializeSubscriptions() {
   for (const [eventKey, handler] of Object.entries(subscriptionMap)) {
     eventBus.on(eventKey, async (payload) => {
       try {
-        logger.info(`[EventSubscriptions] Triggered notification dispatch for key: "${eventKey}"`);
+        logger.info(`[EventSubscriptions] Triggered notification and webhook dispatch for key: "${eventKey}"`);
+        
+        // 1. Dispatch internal notifications
         await handler(payload);
+        
+        // 2. Dispatch outbound tenant webhooks
+        // Payload typically contains tenant_id. If not, it should be extracted/passed appropriately.
+        // We assume payload.tenant_id is present for tenant-specific events.
+        if (payload && payload.tenant_id) {
+          await outboundWebhookService.dispatchToTenantWebhooks(eventKey, payload.tenant_id, payload);
+        }
       } catch (err) {
         logger.error(`[EventSubscriptions] Handler failed for "${eventKey}": ${err.message}`);
       }

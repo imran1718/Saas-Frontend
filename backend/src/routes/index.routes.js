@@ -20,6 +20,9 @@ const rtoRoutes = require('./rto.routes');
 const walletRoutes = require('./wallet.routes');
 const rechargeRoutes = require('./recharge.routes');
 const walletWebhookRoutes = require('./walletWebhook.routes');
+const apiKeyRoutes = require('./apiKey.routes');
+const tenantWebhookRoutes = require('./tenantWebhook.routes');
+const publicApiRoutes = require('./publicApi.routes');
 
 const router = express.Router();
 
@@ -36,14 +39,20 @@ router.use('/orders', orderRoutes);
 router.use('/couriers', tenantCourierRoutes);
 router.use('/', rateComparisonRoutes);
 router.use('/shipments', shipmentRoutes);
-router.use('/webhooks', webhookRoutes);
+router.use('/webhooks/wallet', walletWebhookRoutes);
+router.use('/webhooks/inbound', webhookRoutes); // Moved to /inbound to prevent collision with tenant webhooks
+
+// Developer API (API Keys & Webhooks)
+router.use('/api-keys', apiKeyRoutes);
+router.use('/webhooks', tenantWebhookRoutes);
+router.use('/public', publicApiRoutes);
+
 router.use('/track', publicTrackingRoutes);
 router.use('/platform/webhook-logs', platformWebhookLogRoutes);
 router.use('/ndr', ndrRoutes);
 router.use('/rto', rtoRoutes);
 router.use('/', walletRoutes);
 router.use('/', rechargeRoutes);
-router.use('/', walletWebhookRoutes);
 router.use('/', require('./invoice.routes'));
 router.use('/', require('./creditNote.routes'));
 router.use('/', require('./subscriptionPlan.routes'));

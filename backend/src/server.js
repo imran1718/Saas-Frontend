@@ -13,6 +13,7 @@ const { scheduleMonthlyStatements } = require('./schedulers/monthlyStatementSche
 const planRenewalWorker = require('./workers/planRenewal.worker');
 const { schedulePlanRenewals } = require('./schedulers/planRenewalScheduler');
 const notificationDispatchWorker = require('./queue/workers/notificationDispatch.worker');
+const { webhookDeliveryWorker } = require('./queue/workers/webhookDelivery.worker');
 
 
 const startServer = async () => {
@@ -68,6 +69,7 @@ const startServer = async () => {
       await monthlyStatementWorker.close();
       await planRenewalWorker.close();
       await notificationDispatchWorker.close();
+      await webhookDeliveryWorker.close();
       await stopScheduler();
 
       await sequelize.close();
