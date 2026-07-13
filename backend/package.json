@@ -21,6 +21,7 @@
     "bullmq": "^5.80.1",
     "bwip-js": "^4.11.2",
     "compression": "^1.7.4",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "csv-parse": "^7.0.1",

@@ -38,6 +38,18 @@ function initializeSubscriptions() {
       }
     });
   }
+
+  // SOW G5 Auto-ticket creation on NDR escalation
+  eventBus.on('ndr.escalated', async (payload) => {
+    try {
+      logger.info(`[EventSubscriptions] NDR escalated event received, creating support ticket.`);
+      const supportTicketService = require('../services/supportTicket.service');
+      await supportTicketService.createFromNdrEscalation(payload);
+    } catch (err) {
+      logger.error(`[EventSubscriptions] Failed to create ticket from NDR escalation: ${err.message}`);
+    }
+  });
+
   logger.info('[EventSubscriptions] Successfully registered all central notification hooks.');
 }
 

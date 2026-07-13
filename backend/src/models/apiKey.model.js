@@ -47,6 +47,15 @@ const ApiKey = sequelize.define('ApiKey', {
     type: DataTypes.UUID,
     allowNull: false,
   },
+  sandbox_mode: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  },
+  revoked_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   tableName: 'api_keys',
   timestamps: true,

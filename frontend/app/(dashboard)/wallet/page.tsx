@@ -1,225 +1,130 @@
 'use client';
-
-'use client';
-
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/apiClient';
-import { Spinner } from '@/components/ui/Spinner';
-import { WalletBalanceCard } from '@/components/wallet/WalletBalanceCard';
-import { TransactionTable, WalletTransactionData } from '@/components/wallet/TransactionTable';
-import { RotateCw, PlusCircle, Search, Calendar, Download } from 'lucide-react';
+import { Wallet, Plus, ArrowUpRight, ArrowDownRight, RefreshCw, Zap } from 'lucide-react';
 import Link from 'next/link';
 
-interface WalletDetails {
-  balance: number;
-  low_balance_threshold: number;
-  currency: string;
+function LedgerRow({ entry }: { entry: any }) {
+  const isCredit = entry.transaction_type === 'credit' || entry.credit > 0;
+  return (
+    <tr className="border-b border-slate-100 dark:border-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+      <td className="px-5 py-4">
+        <p className="text-slate-800 dark:text-slate-200 font-medium text-sm">{entry.description || entry.narration || 'Transaction'}</p>
+        <p className="text-slate-400 text-xs mt-0.5">{new Date(entry.created_at).toLocaleString('en-IN')}</p>
+      </td>
+      <td className="px-5 py-4">
+        <span className={`inline-flex items-center gap-1 text-sm font-semibold
+          ${isCredit ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+          {isCredit ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+          {isCredit ? '+' : '-'}₹{Math.abs(entry.credit || entry.debit || entry.amount || 0).toFixed(2)}
+        </span>
+      </td>
+      <td className="px-5 py-4 text-slate-500 text-sm">
+        ₹{(entry.closing_balance ?? entry.balance ?? 0).toFixed(2)}
+      </td>
+      <td className="px-5 py-4">
+        <span className="text-xs text-slate-400 capitalize">{entry.transaction_type || (isCredit ? 'credit' : 'debit')}</span>
+      </td>
+    </tr>
+  );
 }
 
 export default function WalletPage() {
-  const [wallet, setWallet] = useState<WalletDetails | null>(null);
-  const [transactions, setTransactions] = useState<WalletTransactionData[]>([]);
+  const [wallet, setWallet] = useState<any>(null);
+  const [ledger, setLedger] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Filters
-  const [type, setType] = useState<string>('');
-  const [referenceType, setReferenceType] = useState<string>('');
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-
-  const fetchWallet = async () => {
-    try {
-      const res = await apiClient.get('/wallet');
-      setWallet(res.data.data);
-    } catch (err: any) {
-      console.error('Failed to load wallet stats:', err);
-    }
-  };
-
-  const fetchTransactions = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = {
-        type: type || undefined,
-        reference_type: referenceType || undefined,
-        page,
-        limit: 15,
-      };
-
-      const res = await apiClient.get('/wallet/transactions', { params });
-      setTransactions(res.data.data.rows);
-      setTotalPages(res.data.data.pagination.totalPages);
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to load ledger history');
-    } finally {
-      setLoading(false);
-    }
-  }, [type, referenceType, page]);
 
   useEffect(() => {
-    fetchWallet();
-    fetchTransactions();
-  }, [fetchTransactions]);
-
-  const handleUpdateThreshold = async (newThreshold: number) => {
-    await apiClient.put('/wallet/threshold', {
-      low_balance_threshold: newThreshold,
-    });
-    fetchWallet();
-  };
-
-  const handleExportCSV = () => {
-    if (transactions.length === 0) return;
-    
-    // Simple CSV generator
-    const headers = ['Transaction ID', 'Date', 'Type', 'Amount', 'Ref Type', 'Reference ID', 'Description', 'Balance After'];
-    const rows = transactions.map((t) => [
-      t.id,
-      new Date(t.created_at).toISOString(),
-      t.type,
-      t.amount,
-      t.reference_type,
-      t.reference_id || '',
-      t.description.replace(/"/g, '""'),
-      t.balance_after,
-    ]);
-
-    const csvContent =
-      'data:text/csv;charset=utf-8,' +
-      [headers.join(','), ...rows.map((e) => e.map(val => `"${val}"`).join(','))].join('\n');
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `statement_${new Date().toISOString().substring(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+    const load = async () => {
+      try {
+        const [wRes, lRes] = await Promise.all([
+          apiClient.get('/wallet/balance'),
+          apiClient.get('/wallet/ledger', { params: { page: 1, limit: 20 } }),
+        ]);
+        if (wRes.data.success) setWallet(wRes.data.data);
+        if (lRes.data.success) setLedger(lRes.data.data?.data || lRes.data.data || []);
+      } catch {}
+      setLoading(false);
+    };
+    load();
+  }, []);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Wallet Account Statement</h1>
-          <p className="text-xs text-gray-500">Track credits, debits, shipment fees, and account statements.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Wallet</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Manage your shipping credits and transaction history</p>
         </div>
-        <div className="flex space-x-2">
-          <Link
-            href="/wallet/recharge"
-            className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md transition"
-          >
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span>Add Funds</span>
+        <Link href="/wallet/recharge"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-all shadow-lg shadow-indigo-500/25">
+          <Plus className="w-4 h-4" /> Add Credits
+        </Link>
+      </div>
+
+      {/* Balance Card */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="sm:col-span-1 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 p-6 text-white shadow-xl shadow-indigo-500/20">
+          <div className="flex items-center gap-2 mb-4">
+            <Wallet className="w-5 h-5 text-indigo-200" />
+            <span className="text-indigo-200 text-sm font-medium">Available Balance</span>
+          </div>
+          <p className="text-4xl font-bold tracking-tight">
+            {loading ? '—' : `₹${(wallet?.balance ?? 0).toFixed(2)}`}
+          </p>
+          <Link href="/wallet/recharge" className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition-all">
+            <Zap className="w-3.5 h-3.5" /> Recharge Now
           </Link>
-          <button
-            onClick={() => { fetchWallet(); fetchTransactions(); }}
-            className="flex items-center space-x-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-xl text-xs font-semibold shadow-sm transition"
-          >
-            <RotateCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+        </div>
+
+        <div className="rounded-2xl bg-white dark:bg-[#0f1120] border border-slate-200 dark:border-white/[0.06] p-5">
+          <p className="text-slate-500 text-sm mb-2">Total Recharged (All Time)</p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white">
+            {loading ? '—' : `₹${(wallet?.total_recharged ?? 0).toFixed(2)}`}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-white dark:bg-[#0f1120] border border-slate-200 dark:border-white/[0.06] p-5">
+          <p className="text-slate-500 text-sm mb-2">Total Used (All Time)</p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white">
+            {loading ? '—' : `₹${(wallet?.total_used ?? 0).toFixed(2)}`}
+          </p>
+        </div>
+      </div>
+
+      {/* Ledger */}
+      <div className="rounded-2xl bg-white dark:bg-[#0f1120] border border-slate-200 dark:border-white/[0.06] overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-white/[0.06]">
+          <h2 className="text-slate-900 dark:text-white font-semibold">Transaction History</h2>
+          <button className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-white text-sm transition-colors">
+            <RefreshCw className="w-4 h-4" /> Refresh
           </button>
         </div>
-      </div>
-
-      {wallet && (
-        <div className="max-w-md">
-          <WalletBalanceCard
-            balance={wallet.balance}
-            lowBalanceThreshold={wallet.low_balance_threshold}
-            currency={wallet.currency}
-            onUpdateThreshold={handleUpdateThreshold}
-          />
-        </div>
-      )}
-
-      {/* Ledger statement controls */}
-      <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-4 border-b pb-3">
-          <div className="flex items-center space-x-1.5 text-xs font-bold text-gray-700 uppercase tracking-wider">
-            <Search className="h-4 w-4 text-blue-500" />
-            <span>Transaction Ledger History</span>
-          </div>
-          {transactions.length > 0 && (
-            <button
-              onClick={handleExportCSV}
-              className="flex items-center space-x-1 text-xs text-slate-600 hover:text-blue-600 font-bold border rounded-lg px-2.5 py-1.5 hover:bg-slate-50 transition"
-            >
-              <Download className="h-3.5 w-3.5" />
-              <span>Export CSV</span>
-            </button>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <select
-            value={type}
-            onChange={(e) => { setType(e.target.value); setPage(1); }}
-            className="text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none cursor-pointer"
-          >
-            <option value="">All Flow Directions</option>
-            <option value="credit">Credits (Income)</option>
-            <option value="debit">Debits (Expenses)</option>
-          </select>
-
-          <select
-            value={referenceType}
-            onChange={(e) => { setReferenceType(e.target.value); setPage(1); }}
-            className="text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none cursor-pointer"
-          >
-            <option value="">All Reference types</option>
-            <option value="recharge">Gateway Recharge</option>
-            <option value="shipment_debit">Consignment Debit</option>
-            <option value="shipment_refund">Consignment Refund</option>
-            <option value="manual_credit">Manual Credit</option>
-            <option value="manual_debit">Manual Debit</option>
-            <option value="adjustment">System Adjustment</option>
-          </select>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="border-b border-slate-100 dark:border-white/[0.06]">
+              <tr>
+                {['Description', 'Amount', 'Balance', 'Type'].map(h => (
+                  <th key={h} className="px-5 py-3.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="border-b border-slate-100 dark:border-white/[0.04]">
+                    {Array.from({ length: 4 }).map((_, j) => (
+                      <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-100 dark:bg-white/[0.04] rounded animate-pulse" /></td>
+                    ))}
+                  </tr>
+                ))
+              ) : ledger.length === 0 ? (
+                <tr><td colSpan={4} className="px-5 py-12 text-center text-slate-400">No transactions yet</td></tr>
+              ) : ledger.map((entry, i) => <LedgerRow key={i} entry={entry} />)}
+            </tbody>
+          </table>
         </div>
       </div>
-
-      {error && (
-        <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
-          {error}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <Spinner className="h-8 w-8 text-blue-600" />
-        </div>
-      ) : (
-        <>
-          <TransactionTable transactions={transactions} />
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between bg-white border border-gray-200/80 rounded-2xl px-5 py-4 shadow-sm">
-              <p className="text-xs text-gray-500 font-semibold">
-                Page {page} of {totalPages}
-              </p>
-              <div className="flex space-x-2">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => setPage(p => p - 1)}
-                  className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                >
-                  Previous
-                </button>
-                <button
-                  disabled={page >= totalPages}
-                  onClick={() => setPage(p => p + 1)}
-                  className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }

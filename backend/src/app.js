@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const cookieParser = require('cookie-parser');
 const config = require('./config/env');
 const routes = require('./routes/index.routes');
 const errorHandler = require('./middlewares/errorHandler.middleware');
@@ -23,6 +24,7 @@ app.use(cors({
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Compression
 app.use(compression());
@@ -38,6 +40,10 @@ app.use(tenantScopeMiddleware);
 
 // API Routes
 app.use('/api/v1', routes);
+
+// Inbound webhook receivers (outside /v1/ — URLs registered with external platforms)
+app.use('/api/webhooks/razorpay', require('./routes/razorpayWebhook.routes'));
+app.use('/api/webhooks', require('./routes/storefrontWebhookReceiver.routes'));
 
 // Static uploads serving
 const path = require('path');

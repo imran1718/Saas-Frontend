@@ -8,6 +8,7 @@ const providerHealthService = require('./providerHealth.service');
 const ProviderFactory = require('../providers/ProviderFactory');
 const config = require('../config/env');
 const auditService = require('./audit.service');
+const carrierMarginConfigService = require('./carrierMarginConfig.service');
 const logger = require('../utils/logger');
 
 /**
@@ -111,12 +112,17 @@ const compareRates = async (orderId, tenantId, userId) => {
       const val = result.value;
       for (const r of val.adapterRates) {
         const quoteId = require('uuid').v4();
+
+        // G10: Resolve carrier margin for this tenant+carrier combination
+        const margin = await carrierMarginConfigService.resolveMargin(val.providerId, tenantId);
+        const effectivePrice = carrierMarginConfigService.applyMargin(parseFloat(r.price), margin);
+
         quotesToInsert.push({
           id: quoteId,
           order_id: orderId,
           courier_provider_id: val.providerId,
           service_type: r.serviceType,
-          price: r.price,
+          price: effectivePrice,
           cod_charge: r.codCharge || 0.00,
           estimated_days: r.estimatedDays,
           quoted_at: new Date(),
@@ -127,7 +133,9 @@ const compareRates = async (orderId, tenantId, userId) => {
           courier_provider_id: val.providerId,
           display_name: val.displayName,
           service_type: r.serviceType,
-          price: parseFloat(r.price),
+          price: effectivePrice,
+          base_price: parseFloat(r.price),
+          margin_applied: margin ? `${margin.margin_type}:${margin.margin_value}` : null,
           cod_charge: parseFloat(r.codCharge || 0.00),
           estimated_days: r.estimatedDays,
         });

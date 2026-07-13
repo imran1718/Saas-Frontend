@@ -1,6 +1,7 @@
 'use strict';
 
 const { InvoiceSequence, sequelize } = require('../models');
+const settingsService = require('./settings.service');
 const logger = require('../utils/logger');
 
 /**
@@ -24,17 +25,29 @@ function getFinancialYear(date = new Date()) {
 }
 
 /**
- * Sequential sequential number generation with row-level locks.
+ * Sequential number generation with row-level locks.
  * @param {'invoice' | 'credit_note'} seriesKey
  * @param {object} transaction
+ * @param {string|null} [tenantId=null] - used for per-tenant invoice prefix resolution (Module 18 retrofit)
  */
-async function generateNextNumber(seriesKey, transaction) {
+async function generateNextNumber(seriesKey, transaction, tenantId = null) {
   if (!transaction) {
     throw new Error('A database transaction is required to lock invoice numbering');
   }
 
   const fy = getFinancialYear();
-  const prefix = seriesKey === 'invoice' ? 'INV' : 'CN';
+
+  // Retrofit (Module 18): resolve invoice prefix via three-tier settings resolution.
+  // For credit notes the prefix is always 'CN' and is not tenant-configurable.
+  let prefix = 'CN';
+  if (seriesKey === 'invoice') {
+    if (tenantId) {
+      const { value } = await settingsService.getEffectiveSetting(tenantId, 'invoice_prefix');
+      prefix = (value && String(value).trim()) ? String(value).trim().toUpperCase() : 'INV';
+    } else {
+      prefix = 'INV';
+    }
+  }
 
   // 1. Lock the sequence counter row using FOR UPDATE
   let seq = await InvoiceSequence.findOne({
@@ -61,7 +74,7 @@ async function generateNextNumber(seriesKey, transaction) {
   const padded = nextVal.toString().padStart(6, '0');
   const number = `${prefix}/${fy}/${padded}`;
 
-  logger.info(`[InvoiceNumbering] Allocated sequence sequence ${number} (last_number: ${nextVal})`);
+  logger.info(`[InvoiceNumbering] Allocated sequence ${number} (last_number: ${nextVal})`);
   return number;
 }
 

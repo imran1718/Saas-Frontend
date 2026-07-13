@@ -25,7 +25,12 @@ function generateSignature(payload, secret) {
 function verifySignature(signature, payload, secret) {
   const expectedSignature = generateSignature(payload, secret);
   try {
-    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+    const a = Buffer.from(signature);
+    const b = Buffer.from(expectedSignature);
+    if (a.length !== b.length) {
+      return false;
+    }
+    return crypto.timingSafeEqual(a, b);
   } catch (err) {
     return false;
   }

@@ -3,6 +3,7 @@
 const { TrackingEvent, Shipment, NdrEvent, RtoRecord, sequelize } = require('../models');
 const { detectNdrReason, detectRtoStatus, REASON_CODES, RTO_STATUSES } = require('../constants/ndrReasonCodes.constant');
 const config = require('../config/env');
+const settingsService = require('./settings.service');
 const shipmentStatusService = require('./shipmentStatus.service');
 const auditService = require('./audit.service');
 const logger = require('../utils/logger');
@@ -73,7 +74,9 @@ async function detectAndProcessNdrOrRto(trackingEventId) {
  */
 async function handleNdrEvent(event, reasonCode, transaction) {
   const shipment = event.shipment;
-  const threshold = config.ndr.autoRtoThreshold;
+  // Retrofit (Module 18): use three-tier settings resolution instead of direct env read.
+  // Falls back to platform_settings.default_ndr_auto_rto_threshold → env NDR_AUTO_RTO_THRESHOLD.
+  const { value: threshold } = await settingsService.getEffectiveSetting(shipment.tenant_id, 'ndr_auto_rto_threshold');
   const slaHours = config.ndr.slaHours;
 
   // Check if there is an existing open NDR event for this shipment

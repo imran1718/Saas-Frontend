@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import WebhookForm from '@/components/developer/WebhookForm';
-import api from '@/utils/api';
+import { apiClient as api } from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 

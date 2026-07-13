@@ -14,7 +14,11 @@ const planRenewalWorker = require('./workers/planRenewal.worker');
 const { schedulePlanRenewals } = require('./schedulers/planRenewalScheduler');
 const notificationDispatchWorker = require('./queue/workers/notificationDispatch.worker');
 const { webhookDeliveryWorker } = require('./queue/workers/webhookDelivery.worker');
-
+const { analyticsSnapshotWorker, scheduleNightlySnapshots } = require('./jobs/analyticsSnapshot.worker');
+const reportExportWorker = require('./workers/reportExport.worker');
+const { auditLogRetentionWorker, scheduleAuditLogRetention } = require('./workers/auditLogRetention.worker');
+const sandboxStatusProgressionWorker = require('./jobs/sandboxStatusProgression.worker');
+const codRemittanceReconciliationWorker = require('./jobs/codRemittanceReconciliation.worker');
 
 const startServer = async () => {
   try {
@@ -51,6 +55,26 @@ const startServer = async () => {
     await schedulePlanRenewals();
     logger.info('[Scheduler] Subscription plan renewals scheduler registered.');
 
+    // Start repeatable analytics daily snapshots pre-aggregation scheduler
+    await scheduleNightlySnapshots();
+    logger.info('[Scheduler] Nightly analytics snapshots scheduler registered.');
+
+    // Start repeatable audit log retention purge scheduler (nightly, 2am UTC)
+    await scheduleAuditLogRetention();
+    logger.info('[Scheduler] Nightly audit log retention scheduler registered.');
+
+    // Start SLA breach checker cron (every 30 minutes)
+    const cron = require('node-cron');
+    const ticketSlaService = require('./services/ticketSla.service');
+    cron.schedule('*/30 * * * *', async () => {
+      try {
+        await ticketSlaService.checkSlaBreaches();
+      } catch (err) {
+        logger.error(`[SlaCron] SLA check failed: ${err.message}`);
+      }
+    });
+    logger.info('[Scheduler] Ticket SLA breach checker registered (every 30m).');
+
     // Start Express server
     const server = app.listen(config.port, () => {
       logger.info(`[Server] Listening on port ${config.port} in ${config.nodeEnv} mode`);
@@ -70,6 +94,11 @@ const startServer = async () => {
       await planRenewalWorker.close();
       await notificationDispatchWorker.close();
       await webhookDeliveryWorker.close();
+      await analyticsSnapshotWorker.close();
+      await reportExportWorker.close();
+      await auditLogRetentionWorker.close();
+      await sandboxStatusProgressionWorker.close();
+      await codRemittanceReconciliationWorker.close();
       await stopScheduler();
 
       await sequelize.close();

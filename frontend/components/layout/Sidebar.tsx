@@ -44,11 +44,18 @@ const navGroups = [
     ],
   },
   {
+    label: 'Integrations',
+    items: [
+      { label: 'Stores & Channels', href: '/integrations',         icon: Zap },
+      { label: 'API Keys',          href: '/integrations/api',     icon: CreditCard },
+      { label: 'Webhooks',          href: '/integrations/webhooks',icon: Truck },
+    ],
+  },
+  {
     label: 'Configuration',
     items: [
-      { label: 'Couriers',     href: '/settings/couriers',     icon: Truck },
-      { label: 'Subscription', href: '/settings/subscription', icon: CreditCard },
-      { label: 'Settings',     href: '/settings/company',      icon: Settings },
+      { label: 'Couriers',  href: '/settings/couriers',     icon: Truck },
+      { label: 'Settings',  href: '/settings',              icon: Settings },
     ],
   },
 ];

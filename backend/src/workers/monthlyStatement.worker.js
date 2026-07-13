@@ -87,14 +87,14 @@ async function processTenantMonthlyStatement(tenant, startDate, endDate) {
   // We charge standard GST split on the net shipping spend
   const billingGstin = process.env.BILLING_ENTITY_GSTIN || '33ABCDE1234F1Z5';
   const placeOfSupply = tenant.company_state || 'Tamil Nadu';
-  const taxCalc = taxCalculationService.calculateTax(shippingSubtotal, billingGstin, placeOfSupply);
+  const taxCalc = await taxCalculationService.calculateTax(shippingSubtotal, billingGstin, placeOfSupply, tenantId);
 
   let statementInvoice;
 
   // 2. Open a transaction and save statement invoice
   await sequelize.transaction(async (t) => {
     // Generate sequential statement number
-    const invoiceNumber = await invoiceNumberingService.generateNextNumber('invoice', t);
+    const invoiceNumber = await invoiceNumberingService.generateNextNumber('invoice', t, tenantId);
 
     statementInvoice = await Invoice.create({
       tenant_id: tenantId,

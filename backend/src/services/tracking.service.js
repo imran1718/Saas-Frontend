@@ -158,12 +158,22 @@ async function getTrackingTimeline(shipmentId, tenantId) {
 async function getPublicTracking(awbNumber) {
   const shipment = await Shipment.findOne({
     where: { awb_number: awbNumber },
-    attributes: ['id', 'status', 'is_delayed_flag', 'awb_number', 'estimated_delivery_date'],
+    attributes: ['id', 'status', 'is_delayed_flag', 'awb_number', 'estimated_delivery_date', 'delivered_at', 'tenant_id'],
     include: [
       {
         model: CourierProvider,
         as: 'provider',
-        attributes: ['display_name', 'provider_key', 'logo_url'],
+        attributes: ['display_name', 'logo_url'],
+      },
+      {
+        model: Order,
+        as: 'order',
+        attributes: ['shipping_name', 'declared_value'],
+      },
+      {
+        model: Tenant,
+        as: 'tenant',
+        attributes: ['company_name', 'tracking_page_logo_s3_key', 'tracking_page_color'],
       },
       {
         model: TrackingEvent,
@@ -177,14 +187,32 @@ async function getPublicTracking(awbNumber) {
 
   if (!shipment) return null;
 
+  // Mask buyer's name (first name only)
+  let maskedName = 'Customer';
+  if (shipment.order && shipment.order.shipping_name) {
+    maskedName = shipment.order.shipping_name.split(' ')[0];
+  }
+
+  // Resolve branding S3 URL
+  const fileUploadService = require('./fileUpload.service');
+  let logoUrl = null;
+  if (shipment.tenant && shipment.tenant.tracking_page_logo_s3_key) {
+    logoUrl = await fileUploadService.getPresignedGetUrl(shipment.tenant.tracking_page_logo_s3_key);
+  }
+
   return {
     awb_number: shipment.awb_number,
     current_status: shipment.status,
     is_delayed: shipment.is_delayed_flag,
     estimated_delivery_date: shipment.estimated_delivery_date,
-    provider: shipment.provider
-      ? { display_name: shipment.provider.display_name, logo_url: shipment.provider.logo_url }
-      : null,
+    delivered_at: shipment.delivered_at,
+    provider: shipment.provider,
+    customer_name: maskedName,
+    product_name: 'Package',
+    seller_branding: {
+      logo_url: logoUrl,
+      brand_color: shipment.tenant ? shipment.tenant.tracking_page_color : null,
+    },
     events: shipment.trackingEvents || [],
   };
 }

@@ -130,6 +130,25 @@ async function debit(tenantId, amount, referenceType, referenceId, description, 
     }
 
     if (ownTxn) await txn.commit();
+
+    // GST Invoice: on freight_debit, generate a compliant GST invoice PDF asynchronously
+    if (referenceType === 'freight_debit') {
+      setImmediate(async () => {
+        try {
+          const invoiceService = require('./invoice.service');
+          if (invoiceService.generateFreightDebitInvoice) {
+            const s3Key = await invoiceService.generateFreightDebitInvoice(ledgerTx.id, tenantId, amt);
+            if (s3Key) {
+              await WalletTransaction.update({ invoice_s3_key: s3Key }, { where: { id: ledgerTx.id } });
+              logger.info(`[WalletService] GST invoice generated for freight_debit ${ledgerTx.id}: ${s3Key}`);
+            }
+          }
+        } catch (invoiceErr) {
+          logger.error(`[WalletService] GST invoice generation failed for txn ${ledgerTx.id}: ${invoiceErr.message}`);
+        }
+      });
+    }
+
     return newBalance;
   } catch (err) {
     if (ownTxn) await txn.rollback();

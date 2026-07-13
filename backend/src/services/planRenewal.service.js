@@ -235,8 +235,8 @@ async function createSubscriptionInvoice(tenant, plan, price, transaction) {
     const billingGstin = process.env.BILLING_ENTITY_GSTIN || '33ABCDE1234F1Z5';
 
     // Calculate tax splits
-    const taxCalc = taxCalculationService.calculateTax(price, billingGstin, placeOfSupply);
-    const invoiceNumber = await invoiceNumberingService.generateNextNumber('invoice', transaction);
+    const taxCalc = await taxCalculationService.calculateTax(price, billingGstin, placeOfSupply, tenant.id);
+    const invoiceNumber = await invoiceNumberingService.generateNextNumber('invoice', transaction, tenant.id);
 
     const invoice = await Invoice.create({
       tenant_id: tenant.id,

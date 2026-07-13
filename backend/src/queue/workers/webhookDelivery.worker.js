@@ -30,9 +30,9 @@ const webhookDeliveryWorker = new Worker('webhook-delivery', async (job) => {
 
   const headers = {
     'Content-Type': 'application/json',
-    'X-Webhook-Signature': signature,
-    'X-Webhook-Event': payload.event,
-    'X-Webhook-Delivery-Id': deliveryId,
+    'X-Nanoshipy-Signature': signature,
+    'X-Nanoshipy-Event': payload.event,
+    'X-Nanoshipy-Delivery': deliveryId,
   };
 
   try {

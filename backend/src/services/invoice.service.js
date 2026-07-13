@@ -51,14 +51,15 @@ async function createShipmentInvoice(shipmentId, parentTransaction = null) {
 
     // 3. Tax calculation
     const subtotal = parseFloat(shipment.selected_rate);
-    const taxCalc = taxCalculationService.calculateTax(
+    const taxCalc = await taxCalculationService.calculateTax(
       subtotal,
       configGstin(),
-      placeOfSupply
+      placeOfSupply,
+      tenant.id
     );
 
     // 4. Generate sequential sequential invoice number
-    const invoiceNumber = await invoiceNumberingService.generateNextNumber('invoice', t);
+    const invoiceNumber = await invoiceNumberingService.generateNextNumber('invoice', t, tenant.id);
 
     // 5. Create Invoice row
     invoice = await Invoice.create({
@@ -259,9 +260,60 @@ async function bulkExportInvoices(tenantId, invoiceIds) {
   };
 }
 
+/**
+ * GST Invoice: Generate a GST-compliant invoice PDF for a freight_debit wallet transaction.
+ * Called fire-and-forget from wallet.service.debit when referenceType === 'freight_debit'.
+ * @param {string} txnId - WalletTransaction.id
+ * @param {string} tenantId
+ * @param {number} amount
+ * @returns {string|null} S3 key of generated PDF
+ */
+async function generateFreightDebitInvoice(txnId, tenantId, amount) {
+  try {
+    const { WalletTransaction, Tenant } = require('../models');
+    const tenant = await Tenant.findByPk(tenantId);
+    if (!tenant) return null;
+
+    const txn = await WalletTransaction.findByPk(txnId);
+    if (!txn) return null;
+
+    // Build a minimal invoice object compatible with invoicePdfService
+    const invoiceNumber = `FRT-${Date.now()}`;
+    const tax = taxCalculationService.computeGST(amount, tenant.company_state || 'Tamil Nadu');
+
+    const pseudoInvoice = {
+      invoice_number: invoiceNumber,
+      issued_at: new Date(),
+      due_date: new Date(),
+      subtotal: amount,
+      tax_amount: tax.total,
+      total_amount: amount + tax.total,
+      status: 'paid',
+      tenant,
+      lineItems: [{
+        description: `Freight charges — ${txn.description || 'Shipment booking'}`,
+        quantity: 1,
+        unit_price: amount,
+        total: amount,
+        hsn_code: '996812',
+        cgst_rate: tax.cgstRate,
+        sgst_rate: tax.sgstRate,
+        igst_rate: tax.igstRate,
+      }],
+    };
+
+    const s3Key = await invoicePdfService.generateInvoicePdf(pseudoInvoice);
+    return s3Key;
+  } catch (err) {
+    logger.error(`[InvoiceService] generateFreightDebitInvoice failed: ${err.message}`);
+    return null;
+  }
+}
+
 module.exports = {
   createShipmentInvoice,
   generateAndDeliverPdf,
   getBillingSummary,
   bulkExportInvoices,
+  generateFreightDebitInvoice,
 };

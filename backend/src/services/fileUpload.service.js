@@ -147,6 +147,59 @@ class FileUploadService {
        }
     }
   }
+
+  async getPresignedPutUrl(destinationPath, originalName, mimeType) {
+    const ext = path.extname(originalName);
+    const fileName = `${uuidv4()}-${Date.now()}${ext}`;
+    const fullKey = `${destinationPath}/${fileName}`;
+
+    if (this.provider === 'local') {
+      return {
+        uploadUrl: `/api/v1/kyc/simulate-upload?key=${encodeURIComponent(fullKey)}`,
+        key: fullKey,
+      };
+    } else {
+      try {
+        const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+        const command = new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: fullKey,
+          ContentType: mimeType,
+        });
+        const url = await getSignedUrl(this.s3Client, command, { expiresIn: 900 });
+        return {
+          uploadUrl: url,
+          key: fullKey,
+        };
+      } catch (err) {
+        logger.error('[FileUploadService] Failed to generate signed PUT URL', err);
+        return {
+          uploadUrl: `/api/v1/kyc/simulate-upload?key=${encodeURIComponent(fullKey)}`,
+          key: fullKey,
+        };
+      }
+    }
+  }
+
+  async getPresignedGetUrl(key) {
+    if (!key) return null;
+    if (this.provider === 'local') {
+      return `/uploads/${key}`;
+    } else {
+      try {
+        const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+        const { GetObjectCommand } = require('@aws-sdk/client-s3');
+        const command = new GetObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+        });
+        return await getSignedUrl(this.s3Client, command, { expiresIn: 900 });
+      } catch (err) {
+        logger.error('[FileUploadService] Failed to generate signed GET URL', err);
+        return `/uploads/${key}`;
+      }
+    }
+  }
 }
 
 module.exports = new FileUploadService();

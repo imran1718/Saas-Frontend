@@ -43,6 +43,24 @@ const ApiKey = require('./apiKey.model');
 const ApiKeyUsageLog = require('./apiKeyUsageLog.model');
 const TenantWebhook = require('./tenantWebhook.model');
 const WebhookDelivery = require('./webhookDelivery.model');
+const AnalyticsDailySnapshot = require('./analyticsDailySnapshot.model');
+const SystemSequence = require('./systemSequence.model');
+const SupportTicket = require('./supportTicket.model');
+const TicketMessage = require('./ticketMessage.model');
+const TicketAttachment = require('./ticketAttachment.model');
+
+// Module 18 — Settings & Activity Logs
+const TenantSetting = require('./tenantSetting.model');
+const PlatformSetting = require('./platformSetting.model');
+const SettingsChangeHistory = require('./settingsChangeHistory.model');
+
+// Module 19 — SOW Gap Closure Models
+const KycDocument = require('./kycDocument.model');
+const WhatsappTemplate = require('./whatsappTemplate.model');
+const CodRemittance = require('./codRemittance.model');
+const WeightDiscrepancyDispute = require('./weightDiscrepancyDispute.model');
+const SubUser = require('./subUser.model');
+const CarrierMarginConfig = require('./carrierMarginConfig.model');
 
 // Platform Models
 const PlatformAdmin = require('./platformAdmin.model');
@@ -57,6 +75,41 @@ const PlatformRefreshToken = require('./platformRefreshToken.model');
 // Tenant - User
 Tenant.hasMany(User, { foreignKey: 'tenant_id', as: 'users' });
 User.belongsTo(Tenant, { foreignKey: 'tenant_id', as: 'tenant' });
+
+Tenant.hasMany(AnalyticsDailySnapshot, { foreignKey: 'tenant_id', as: 'dailySnapshots' });
+AnalyticsDailySnapshot.belongsTo(Tenant, { foreignKey: 'tenant_id', as: 'tenant' });
+
+// Tenant - SupportTicket
+Tenant.hasMany(SupportTicket, { foreignKey: 'tenant_id', as: 'tickets', onDelete: 'CASCADE' });
+SupportTicket.belongsTo(Tenant, { foreignKey: 'tenant_id', as: 'tenant' });
+
+// SupportTicket - User (Creator)
+User.hasMany(SupportTicket, { foreignKey: 'created_by', as: 'tickets', onDelete: 'CASCADE' });
+SupportTicket.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+
+// SupportTicket - PlatformAdmin (Assignee)
+PlatformAdmin.hasMany(SupportTicket, { foreignKey: 'assigned_to', as: 'assignedTickets', onDelete: 'SET NULL' });
+SupportTicket.belongsTo(PlatformAdmin, { foreignKey: 'assigned_to', as: 'assignee' });
+
+// SupportTicket - Order
+Order.hasMany(SupportTicket, { foreignKey: 'related_order_id', as: 'tickets', onDelete: 'SET NULL' });
+SupportTicket.belongsTo(Order, { foreignKey: 'related_order_id', as: 'order' });
+
+// SupportTicket - Shipment
+Shipment.hasMany(SupportTicket, { foreignKey: 'related_shipment_id', as: 'tickets', onDelete: 'SET NULL' });
+SupportTicket.belongsTo(Shipment, { foreignKey: 'related_shipment_id', as: 'shipment' });
+
+// SupportTicket - TicketMessage
+SupportTicket.hasMany(TicketMessage, { foreignKey: 'ticket_id', as: 'messages', onDelete: 'CASCADE' });
+TicketMessage.belongsTo(SupportTicket, { foreignKey: 'ticket_id', as: 'ticket' });
+
+// SupportTicket - TicketAttachment
+SupportTicket.hasMany(TicketAttachment, { foreignKey: 'ticket_id', as: 'attachments', onDelete: 'CASCADE' });
+TicketAttachment.belongsTo(SupportTicket, { foreignKey: 'ticket_id', as: 'ticket' });
+
+// TicketMessage - TicketAttachment
+TicketMessage.hasMany(TicketAttachment, { foreignKey: 'ticket_message_id', as: 'attachments', onDelete: 'CASCADE' });
+TicketAttachment.belongsTo(TicketMessage, { foreignKey: 'ticket_message_id', as: 'message' });
 
 // Tenant - Role (tenant-specific roles)
 Tenant.hasMany(Role, { foreignKey: 'tenant_id', as: 'roles' });
@@ -346,7 +399,53 @@ TenantWebhook.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
 TenantWebhook.hasMany(WebhookDelivery, { foreignKey: 'tenant_webhook_id', as: 'deliveries', onDelete: 'CASCADE' });
 WebhookDelivery.belongsTo(TenantWebhook, { foreignKey: 'tenant_webhook_id', as: 'webhook' });
 
+// Module 18 — Tenant Settings
+Tenant.hasOne(TenantSetting, { foreignKey: 'tenant_id', as: 'settings', onDelete: 'CASCADE' });
+TenantSetting.belongsTo(Tenant, { foreignKey: 'tenant_id', as: 'tenant' });
+
+User.hasMany(TenantSetting, { foreignKey: 'updated_by', as: 'settingUpdates' });
+TenantSetting.belongsTo(User, { foreignKey: 'updated_by', as: 'updatedByUser' });
+
+// Module 18 — Platform Settings
+PlatformAdmin.hasMany(PlatformSetting, { foreignKey: 'updated_by', as: 'settingUpdates' });
+PlatformSetting.belongsTo(PlatformAdmin, { foreignKey: 'updated_by', as: 'updatedByAdmin' });
+
+// Module 19 — Associations
+Tenant.hasMany(KycDocument, { foreignKey: 'seller_id', as: 'kycDocuments', onDelete: 'CASCADE' });
+KycDocument.belongsTo(Tenant, { foreignKey: 'seller_id', as: 'seller' });
+
+PlatformAdmin.hasMany(KycDocument, { foreignKey: 'reviewed_by', as: 'reviewedKycDocuments' });
+KycDocument.belongsTo(PlatformAdmin, { foreignKey: 'reviewed_by', as: 'reviewer' });
+
+PlatformAdmin.hasMany(WhatsappTemplate, { foreignKey: 'created_by', as: 'whatsappTemplates' });
+WhatsappTemplate.belongsTo(PlatformAdmin, { foreignKey: 'created_by', as: 'creator' });
+
+Tenant.hasMany(CodRemittance, { foreignKey: 'seller_id', as: 'codRemittances', onDelete: 'CASCADE' });
+CodRemittance.belongsTo(Tenant, { foreignKey: 'seller_id', as: 'seller' });
+
+Tenant.hasMany(WeightDiscrepancyDispute, { foreignKey: 'seller_id', as: 'weightDisputes', onDelete: 'CASCADE' });
+WeightDiscrepancyDispute.belongsTo(Tenant, { foreignKey: 'seller_id', as: 'seller' });
+
+Shipment.hasOne(WeightDiscrepancyDispute, { foreignKey: 'shipment_id', as: 'weightDispute', onDelete: 'CASCADE' });
+WeightDiscrepancyDispute.belongsTo(Shipment, { foreignKey: 'shipment_id', as: 'shipment' });
+
+PlatformAdmin.hasMany(WeightDiscrepancyDispute, { foreignKey: 'resolved_by', as: 'resolvedWeightDisputes' });
+WeightDiscrepancyDispute.belongsTo(PlatformAdmin, { foreignKey: 'resolved_by', as: 'resolver' });
+
+Tenant.hasMany(SubUser, { foreignKey: 'seller_id', as: 'subUsers', onDelete: 'CASCADE' });
+SubUser.belongsTo(Tenant, { foreignKey: 'seller_id', as: 'seller' });
+
+CourierProvider.hasMany(CarrierMarginConfig, { foreignKey: 'carrier_id', as: 'margins', onDelete: 'CASCADE' });
+CarrierMarginConfig.belongsTo(CourierProvider, { foreignKey: 'carrier_id', as: 'carrier' });
+
+Tenant.hasMany(CarrierMarginConfig, { foreignKey: 'seller_id', as: 'margins', onDelete: 'CASCADE' });
+CarrierMarginConfig.belongsTo(Tenant, { foreignKey: 'seller_id', as: 'seller' });
+
+PlatformAdmin.hasMany(CarrierMarginConfig, { foreignKey: 'created_by', as: 'createdMargins' });
+CarrierMarginConfig.belongsTo(PlatformAdmin, { foreignKey: 'created_by', as: 'creator' });
+
 module.exports = {
+
   sequelize,
   Tenant,
   Role,
@@ -397,4 +496,18 @@ module.exports = {
   ApiKeyUsageLog,
   TenantWebhook,
   WebhookDelivery,
+  AnalyticsDailySnapshot,
+  SystemSequence,
+  SupportTicket,
+  TicketMessage,
+  TicketAttachment,
+  TenantSetting,
+  PlatformSetting,
+  SettingsChangeHistory,
+  KycDocument,
+  WhatsappTemplate,
+  CodRemittance,
+  WeightDiscrepancyDispute,
+  SubUser,
+  CarrierMarginConfig,
 };

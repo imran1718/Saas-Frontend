@@ -48,6 +48,16 @@ jest.mock('../../src/models', () => {
       findOne: mockRtoRecordFindOne,
     },
     Shipment: {},
+    TenantSetting: {
+      findOne: jest.fn().mockResolvedValue(null),
+    },
+    PlatformSetting: {
+      findAll: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
+    },
+    SettingsChangeHistory: {
+      create: jest.fn().mockResolvedValue({}),
+    },
   };
 });
 

@@ -6,11 +6,14 @@ const apiKeyUsageService = require('../services/apiKeyUsage.service');
 class ApiKeyController {
   async createKey(req, res, next) {
     try {
-      const { name, scopes, expires_at } = req.body;
-      const { apiKey, rawKey } = await apiKeyService.createApiKey(req.tenant_id, req.user_id, {
-        name,
+      const { name, label, scopes, scope, expires_at, sandbox_mode } = req.body;
+      const tenantId = req.tenant_id || req.user.tenant_id;
+      const { apiKey, rawKey } = await apiKeyService.createApiKey(tenantId, req.user.id, {
+        label: label || name,
         scopes,
-        expires_at
+        scope,
+        expires_at,
+        sandbox_mode
       });
 
       res.status(201).json({
@@ -18,9 +21,11 @@ class ApiKeyController {
         data: {
           id: apiKey.id,
           name: apiKey.name,
+          label: apiKey.name,
           api_key: rawKey, // Shown only once
           key_prefix: apiKey.key_prefix,
           scopes: apiKey.scopes,
+          sandbox_mode: apiKey.sandbox_mode,
           expires_at: apiKey.expires_at,
           warning: 'This is the only time the full API key will be shown. Store it securely.'
         }
@@ -32,7 +37,8 @@ class ApiKeyController {
 
   async listKeys(req, res, next) {
     try {
-      const apiKeys = await apiKeyService.listApiKeys(req.tenant_id);
+      const tenantId = req.tenant_id || req.user.tenant_id;
+      const apiKeys = await apiKeyService.listApiKeys(tenantId);
       res.status(200).json({
         success: true,
         data: apiKeys.rows,
@@ -46,7 +52,8 @@ class ApiKeyController {
   async revokeKey(req, res, next) {
     try {
       const { id } = req.params;
-      const updatedKey = await apiKeyService.revokeApiKey(id, req.tenant_id);
+      const tenantId = req.tenant_id || req.user.tenant_id;
+      const updatedKey = await apiKeyService.revokeApiKey(id, tenantId);
       
       if (!updatedKey) {
         return res.status(404).json({ success: false, error: 'API Key not found or already revoked' });
@@ -67,8 +74,9 @@ class ApiKeyController {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 50;
       const offset = (page - 1) * limit;
+      const tenantId = req.tenant_id || req.user.tenant_id;
 
-      const logs = await apiKeyUsageService.getUsageLogs(id, req.tenant_id, { limit, offset });
+      const logs = await apiKeyUsageService.getUsageLogs(id, tenantId, { limit, offset });
       
       res.status(200).json({
         success: true,

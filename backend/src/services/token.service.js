@@ -109,12 +109,71 @@ const rotateRefreshToken = async (oldToken, deviceInfo, ipAddress) => {
   return { newToken, userId: existingRecord.user_id };
 };
 
+const rotatePlatformRefreshToken = async (oldToken, deviceInfo, ipAddress) => {
+  const tokenHash = hashUtils.sha256(oldToken);
+  const existingRecord = await PlatformRefreshToken.findOne({ where: { token_hash: tokenHash } });
+
+  if (!existingRecord) {
+    throw new Error('Invalid refresh token');
+  }
+
+  if (existingRecord.revoked_at) {
+    // Grace window: if this token was revoked very recently (within 15 seconds),
+    // it's likely a concurrent call (React StrictMode double-mount, tab restore, etc.)
+    // Rather than nuking all sessions, find and return the replacement token.
+    const revokedMs = Date.now() - new Date(existingRecord.revoked_at).getTime();
+    if (revokedMs < 15000) {
+      // Find the newest valid token for this admin issued after the revocation
+      const replacement = await PlatformRefreshToken.findOne({
+        where: {
+          admin_id: existingRecord.admin_id,
+          revoked_at: null,
+        },
+        order: [['created_at', 'DESC']],
+      });
+      if (replacement) {
+        // Return the already-issued replacement as the "new" token
+        // We don't rotate again — the next call with the replacement token will do so
+        return { newToken: null, adminId: existingRecord.admin_id, __reuseReplacement: true };
+      }
+    }
+
+    // Token reuse outside grace window — genuine replay attack. Revoke all sessions.
+    await PlatformRefreshToken.update(
+      { revoked_at: new Date() },
+      { where: { admin_id: existingRecord.admin_id, revoked_at: null } }
+    );
+    throw new Error('Refresh token reuse detected. All sessions revoked.');
+  }
+
+  if (new Date() > existingRecord.expires_at) {
+    throw new Error('Refresh token expired');
+  }
+
+  existingRecord.revoked_at = new Date();
+  await existingRecord.save();
+
+  const newToken = await generatePlatformRefreshToken(existingRecord.admin_id, deviceInfo, ipAddress);
+  
+  return { newToken, adminId: existingRecord.admin_id };
+};
+
 const revokeRefreshToken = async (token) => {
   if (!token) return;
   const tokenHash = hashUtils.sha256(token);
   const existingRecord = await refreshTokenRepo.findByHash(tokenHash);
   if (existingRecord && !existingRecord.revoked_at) {
     await refreshTokenRepo.revoke(existingRecord.id);
+  }
+};
+
+const revokePlatformRefreshToken = async (token) => {
+  if (!token) return;
+  const tokenHash = hashUtils.sha256(token);
+  const existingRecord = await PlatformRefreshToken.findOne({ where: { token_hash: tokenHash } });
+  if (existingRecord && !existingRecord.revoked_at) {
+    existingRecord.revoked_at = new Date();
+    await existingRecord.save();
   }
 };
 
@@ -126,7 +185,9 @@ module.exports = {
   generateRefreshToken,
   generatePlatformRefreshToken,
   rotateRefreshToken,
+  rotatePlatformRefreshToken,
   revokeRefreshToken,
+  revokePlatformRefreshToken,
   signPlatformAccessToken,
   verifyPlatformAccessToken,
   signImpersonationToken,

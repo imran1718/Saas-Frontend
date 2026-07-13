@@ -54,8 +54,76 @@ const Tenant = sequelize.define('Tenant', {
     defaultValue: false,
   },
   kyc_status: {
-    type: DataTypes.ENUM('pending', 'submitted', 'verified', 'rejected'),
-    defaultValue: 'pending',
+    type: DataTypes.STRING(50),
+    defaultValue: 'not_started',
+    allowNull: false,
+  },
+  legal_business_name: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  pan_number: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+  },
+  gst_number: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+  },
+  gst_registered: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  },
+  bank_account_number_encrypted: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  bank_ifsc: {
+    type: DataTypes.STRING(15),
+    allowNull: true,
+  },
+  bank_account_holder_name: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  bank_verified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  },
+  authorized_signatory_name: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  aadhaar_last4: {
+    type: DataTypes.CHAR(4),
+    allowNull: true,
+  },
+  kyc_rejection_reason: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  kyc_submitted_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  kyc_approved_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  tracking_page_logo_s3_key: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+  },
+  tracking_page_color: {
+    type: DataTypes.STRING(7),
+    allowNull: true,
+  },
+  auto_ndr_on_sandbox: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
   },
 }, {
   tableName: 'tenants',

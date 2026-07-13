@@ -120,6 +120,11 @@ const Shipment = sequelize.define('Shipment', {
       key: 'id',
     },
   },
+  sandbox: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  },
 }, {
   tableName: 'shipments',
   timestamps: true,

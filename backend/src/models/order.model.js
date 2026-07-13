@@ -112,6 +112,16 @@ const Order = sequelize.define('Order', {
       key: 'id',
     },
   },
+  sandbox: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  },
+  whatsapp_opted_in: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false,
+  },
 }, {
   tableName: 'orders',
   timestamps: true,

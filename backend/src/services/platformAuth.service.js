@@ -105,7 +105,34 @@ const finalizeLogin = async (admin, ipAddress) => {
   };
 };
 
+const refresh = async (refreshToken, ipAddress) => {
+  const result = await tokenService.rotatePlatformRefreshToken(refreshToken, 'Platform Admin', ipAddress);
+  
+  const admin = await platformAdminRepo.findById(result.adminId);
+  if (!admin || admin.status === 'disabled') {
+    throw new AuthenticationError('Invalid or disabled account');
+  }
+
+  const accessToken = tokenService.signPlatformAccessToken({
+    admin_id: admin.id,
+    role: admin.role,
+  });
+
+  return {
+    admin: {
+      id: admin.id,
+      name: admin.name,
+      email: admin.email,
+      role: admin.role,
+    },
+    accessToken,
+    // If concurrent call (grace window), newToken is null — caller keeps existing cookie
+    refreshToken: result.newToken,
+  };
+};
+
 module.exports = {
   login,
   verify2FA,
+  refresh,
 };

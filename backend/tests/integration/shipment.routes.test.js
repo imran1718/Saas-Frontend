@@ -37,6 +37,11 @@ jest.mock('../../src/services/planEnforcement.service', () => ({
   incrementUsage: jest.fn().mockResolvedValue(true),
 }));
 
+const axios = require('axios');
+jest.spyOn(axios, 'get').mockResolvedValue({
+  data: Buffer.from('%PDF-1.4 mock pdf label buffer data')
+});
+
 describe('Shipment & Rate Comparison Routes (Integration)', () => {
   const tenantId = '85f3da92-c98e-49b4-b4bf-ac087114e41a';
   const roleId = 'c03f0dc0-3d61-4502-9524-6e82f8138a64';

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import WebhookDeliveryLog from '@/components/developer/WebhookDeliveryLog';
-import api from '@/utils/api';
+import { apiClient as api } from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';

@@ -49,11 +49,15 @@ const WalletTransaction = sequelize.define('WalletTransaction', {
     },
   },
   reference_type: {
-    type: DataTypes.ENUM('recharge', 'shipment_debit', 'shipment_refund', 'manual_credit', 'manual_debit', 'adjustment'),
+    type: DataTypes.STRING(50),
     allowNull: false,
   },
   reference_id: {
     type: DataTypes.UUID,
+    allowNull: true,
+  },
+  invoice_s3_key: {
+    type: DataTypes.STRING(500),
     allowNull: true,
   },
   description: {

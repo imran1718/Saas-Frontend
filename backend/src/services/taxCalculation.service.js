@@ -1,6 +1,7 @@
 'use strict';
 
 const config = require('../config/env');
+const settingsService = require('./settings.service');
 
 const STATE_CODES = {
   '01': 'Jammu and Kashmir',
@@ -46,14 +47,17 @@ const STATE_CODES = {
  * @param {number} subtotal
  * @param {string} billingGstin - platform GSTIN (e.g. 33ABCDE1234F1Z5)
  * @param {string} placeOfSupplyState - tenant state (e.g. 'Tamil Nadu')
+ * @param {string|null} [tenantId=null] - optional, used for three-tier GST rate resolution
  */
-function calculateTax(subtotal, billingGstin, placeOfSupplyState) {
+async function calculateTax(subtotal, billingGstin, placeOfSupplyState, tenantId = null) {
   const amt = parseFloat(subtotal);
   if (isNaN(amt) || amt < 0) {
     throw new Error('Subtotal must be a positive number');
   }
 
-  const gstPercent = config.billing.gstRatePercent || 18;
+  // Retrofit (Module 18): resolve GST rate via three-tier settings resolution.
+  // Checks tenant override → platform_settings.default_gst_rate_percent → env GST_RATE_PERCENT.
+  const { value: gstPercent } = await settingsService.getEffectiveSetting(tenantId, 'default_gst_rate_percent');
   const gstRate = gstPercent / 100;
 
   // Extract first 2 digits (state code) from GSTIN

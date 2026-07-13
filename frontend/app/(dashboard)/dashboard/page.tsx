@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/authStore';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { apiClient } from '@/lib/apiClient';
-import { AlertTriangle, ShieldAlert, ArrowLeftRight, ArrowRight, Wallet, Plus, FileText } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, ArrowLeftRight, ArrowRight, Wallet, Plus, FileText, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface NdrSummary {
@@ -24,6 +24,7 @@ export default function DashboardPage() {
   const [rtoCount, setRtoCount] = useState<number>(0);
   const [billingStats, setBillingStats] = useState({ this_month_spend: 0, pending_invoices: 0 });
   const [subPlan, setSubPlan] = useState<string | null>(null);
+  const [openTicketsCount, setOpenTicketsCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
 
@@ -36,7 +37,8 @@ export default function DashboardPage() {
       apiClient.get('/wallet'),
       apiClient.get('/billing/summary'),
       apiClient.get('/subscription').catch(() => null),
-    ]).then(([ndrRes, rtoRes, walletRes, billingRes, subRes]) => {
+      apiClient.get('/support/tickets', { params: { status: 'open', limit: 1 } }).catch(() => null),
+    ]).then(([ndrRes, rtoRes, walletRes, billingRes, subRes, ticketsRes]) => {
       if (ndrRes.status === 'fulfilled') {
         setNdrSummary(ndrRes.value.data.data);
       }
@@ -51,6 +53,9 @@ export default function DashboardPage() {
       }
       if (subRes.status === 'fulfilled' && subRes.value) {
         setSubPlan(subRes.value.data.data.plan.name);
+      }
+      if (ticketsRes.status === 'fulfilled' && ticketsRes.value) {
+        setOpenTicketsCount(ticketsRes.value.data.data.total || 0);
       }
       setLoading(false);
     });
@@ -80,6 +85,13 @@ export default function DashboardPage() {
               <Button onClick={() => logout()} variant="outline" className="text-xs font-semibold px-4 py-2 border rounded-xl hover:bg-gray-50">
                 Sign Out Session
               </Button>
+              <Link
+                href="/analytics"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-sm transition flex items-center space-x-1"
+              >
+                <span>Analytics Dashboard</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -126,8 +138,8 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* NDR & Returns Operational Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* NDR & Returns & Tickets Operational Widgets */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         
         {/* Open NDR Exception count */}
         <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
@@ -186,6 +198,27 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/rto"
+            className="p-2 bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 rounded-xl transition"
+          >
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        {/* Open Support Tickets */}
+        <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+              <HelpCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Open Tickets</p>
+              <h3 className="text-xl font-black text-gray-900 mt-1">
+                {loading ? '...' : openTicketsCount}
+              </h3>
+            </div>
+          </div>
+          <Link
+            href="/support"
             className="p-2 bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 rounded-xl transition"
           >
             <ArrowRight className="h-4 w-4" />

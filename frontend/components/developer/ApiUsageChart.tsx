@@ -17,11 +17,11 @@ export default function ApiUsageChart({ logs = [] }) {
   }
 
   // Aggregate logs by day for a simple bar chart visualization
-  const aggregated = logs.reduce((acc, log) => {
+  const aggregated: Record<string, number> = logs.reduce((acc: Record<string, number>, log: any) => {
     const date = new Date(log.created_at).toLocaleDateString();
     acc[date] = (acc[date] || 0) + 1;
     return acc;
-  }, {});
+  }, {} as Record<string, number>);
 
   const maxCalls = Math.max(...Object.values(aggregated), 1);
   const chartData = Object.entries(aggregated).map(([date, count]) => ({ date, count }));

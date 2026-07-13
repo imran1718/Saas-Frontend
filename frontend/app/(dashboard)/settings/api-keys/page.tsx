@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import ApiKeyTable from '@/components/developer/ApiKeyTable';
 import ApiKeyCreateModal from '@/components/developer/ApiKeyCreateModal';
 import ApiUsageChart from '@/components/developer/ApiUsageChart';
-import api from '@/utils/api'; // assuming standard axios instance
+import { apiClient as api } from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
 
 export default function ApiKeysPage() {
