@@ -15,13 +15,15 @@ const app = express();
 // Security headers
 app.use(helmet());
 
-// CORS
 app.use(cors({
   origin: [
     config.frontendUrl,
     config.platformAdminFrontendUrl,
-    'https://frontend.nanoshipy.com',
+    'http://user.nanoshipy.com',
+    'https://user.nanoshipy.com',
+    'http://admin.nanoshipy.com',
     'https://admin.nanoshipy.com',
+    'https://frontend.nanoshipy.com',
   ],
   credentials: true,
 }));
