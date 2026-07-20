@@ -17,7 +17,12 @@ app.use(helmet());
 
 // CORS
 app.use(cors({
-  origin: [config.frontendUrl, config.platformAdminFrontendUrl],
+  origin: [
+    config.frontendUrl,
+    config.platformAdminFrontendUrl,
+    'https://frontend.nanoshipy.com',
+    'https://admin.nanoshipy.com',
+  ],
   credentials: true,
 }));
 
