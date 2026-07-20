@@ -8,6 +8,7 @@ interface User {
   name: string;
   email: string;
   phone?: string;
+  tenant?: { name: string; subdomain: string };
   role: { id: string; name: string };
   tenant_id: string;
   permissions: string[];
