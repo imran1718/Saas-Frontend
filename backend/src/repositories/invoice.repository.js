@@ -57,7 +57,10 @@ const findAll = async ({
     limit,
     offset,
     order: [[sort, order]],
-    include: [{ model: InvoiceLineItem, as: 'lineItems' }],
+    include: [
+      { model: InvoiceLineItem, as: 'lineItems' },
+      { model: Tenant, as: 'tenant', attributes: ['id', 'company_name', 'subdomain'] },
+    ],
   });
 
   return {

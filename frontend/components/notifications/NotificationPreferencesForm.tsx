@@ -160,12 +160,12 @@ export function NotificationPreferencesForm() {
       )}
 
       {/* Intro Header Card */}
-      <div className="p-6 rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-slate-50 dark:bg-[#131620]/40 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#131620]/40 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
             Notification Center Settings
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-light max-w-xl">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-normal max-w-xl">
             Configure preference toggles across channels. In-app alerts are delivered by default to your notifications bell widget.
           </p>
         </div>
@@ -184,7 +184,7 @@ export function NotificationPreferencesForm() {
       </div>
 
       {/* Preferences Grid Table */}
-      <div className="rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#131620]/20 overflow-hidden divide-y divide-slate-150 dark:divide-white/[0.06]">
+      <div className="rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#131620]/20 overflow-hidden divide-y divide-slate-100 dark:divide-white/[0.06] shadow-sm">
         {categories.map(category => {
           // Get events inside this category
           const eventKeys = Object.keys(EVENT_DISPLAY_NAMES).filter(
@@ -207,10 +207,10 @@ export function NotificationPreferencesForm() {
                       className="pt-4 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                       <div className="max-w-md">
-                        <span className="text-sm font-semibold text-slate-800 dark:text-white">
+                        <span className="text-sm font-bold text-slate-900 dark:text-white">
                           {info.title}
                         </span>
-                        <p className="text-xs text-slate-500 dark:text-slate-450 mt-0.5 font-light leading-relaxed">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-normal leading-relaxed">
                           {info.description}
                         </p>
                       </div>
@@ -225,13 +225,13 @@ export function NotificationPreferencesForm() {
 
                           return (
                             <div key={channel} className="flex flex-col items-center gap-1.5">
-                              <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                 {channel === 'whatsapp' ? 'WhatsApp' : channel}
                               </span>
                               <button
                                 onClick={() => handleToggle(eventKey, channel)}
                                 className={`transition-all duration-200 focus:outline-none ${
-                                  isEnabled ? 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300' : 'text-slate-350 dark:text-slate-600 hover:text-slate-450 dark:hover:text-slate-500'
+                                  isEnabled ? 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300' : 'text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500'
                                 }`}
                               >
                                 {isEnabled ? (

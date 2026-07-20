@@ -118,8 +118,8 @@ export default function TenantSubscriptionDashboardPage() {
     <div className="space-y-6 max-w-4xl mx-auto p-4">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Subscription Plan</h1>
-        <p className="text-xs text-slate-500 mt-1">
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Subscription Plan</h1>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
           Monitor your usage allocations, auto-renewals status, and change subscription tiers.
         </p>
       </div>
@@ -128,17 +128,17 @@ export default function TenantSubscriptionDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Current Plan Card (2 cols wide on desktop) */}
-        <Card className="md:col-span-2 bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
+        <Card className="md:col-span-2 bg-white dark:bg-[#131620] border border-gray-200/80 dark:border-white/[0.06] rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
           <div className="p-6 space-y-6">
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-2">
                 <Sparkles className="h-5 w-5 text-blue-500" />
-                <h3 className="text-base font-black text-slate-800">{subData.plan.name} Tier</h3>
+                <h3 className="text-base font-black text-slate-900 dark:text-white">{subData.plan.name} Tier</h3>
               </div>
               <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                 subData.status === 'active'
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
+                  : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
               }`}>
                 {subData.status.toUpperCase()}
               </span>
@@ -146,7 +146,7 @@ export default function TenantSubscriptionDashboardPage() {
 
             {/* Grace period notice */}
             {subData.status === 'grace_period' && subData.grace_period_ends_at && (
-              <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3.5 text-xs">
+              <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-800 dark:text-amber-300 rounded-xl p-3.5 text-xs">
                 <strong>Attention Required:</strong> Wallet auto-debit failed. Recharge before{' '}
                 {new Date(subData.grace_period_ends_at).toLocaleDateString('en-IN')} to prevent workspace suspension.
               </div>
@@ -154,30 +154,30 @@ export default function TenantSubscriptionDashboardPage() {
 
             {/* Pending plan check */}
             {subData.pending_plan && (
-              <div className="bg-purple-50 border border-purple-200 text-purple-800 rounded-xl p-3.5 text-xs">
+              <div className="bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 text-purple-800 dark:text-purple-300 rounded-xl p-3.5 text-xs">
                 <strong>Scheduled:</strong> Workspace will downgrade to **{subData.pending_plan.name}** at the end of the current period ({renewalDate}).
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div className="flex items-center space-x-2 text-slate-500">
-                <Calendar className="h-4 w-4 shrink-0" />
+                <Calendar className="h-4 w-4 shrink-0 text-blue-500" />
                 <div>
-                  <p className="font-bold text-slate-700">{renewalDate}</p>
-                  <p className="text-[10px] text-slate-400">Next renewal date</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{renewalDate}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Next renewal date</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2 text-slate-500">
-                <RefreshCcw className="h-4 w-4 shrink-0" />
+                <RefreshCcw className="h-4 w-4 shrink-0 text-blue-500" />
                 <div>
-                  <p className="font-bold text-slate-700">{cycleText}</p>
-                  <p className="text-[10px] text-slate-400">Cycle type</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{cycleText}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Cycle type</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="p-4 bg-gray-50 dark:bg-white/[0.02] border-t border-gray-100 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -187,7 +187,7 @@ export default function TenantSubscriptionDashboardPage() {
                 disabled={toggling}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer h-4 w-4"
               />
-              <label htmlFor="autoRenew" className="text-xs font-bold text-slate-700 cursor-pointer select-none">
+              <label htmlFor="autoRenew" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer select-none">
                 Enable subscription auto-renewal
               </label>
             </div>
@@ -203,8 +203,8 @@ export default function TenantSubscriptionDashboardPage() {
         </Card>
 
         {/* Usage meters side-card (1 col wide) */}
-        <Card className="bg-white border border-gray-200/80 rounded-2xl shadow-sm p-5 space-y-5">
-          <h3 className="text-xs text-slate-400 font-bold uppercase tracking-wider">Current Period Usage</h3>
+        <Card className="bg-white dark:bg-[#131620] border border-gray-200/80 dark:border-white/[0.06] rounded-2xl shadow-sm p-5 space-y-5">
+          <h3 className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Current Period Usage</h3>
           
           <UsageProgressBar
             label="Shipment Volume"

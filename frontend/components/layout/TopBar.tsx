@@ -4,69 +4,61 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { useAuth } from '@/lib/authStore';
-import { Building2 } from 'lucide-react';
+import { Wallet } from 'lucide-react';
+import Link from 'next/link';
 
-const pageTitles: Record<string, string> = {
-  '/dashboard':               'Dashboard',
-  '/orders':                  'Orders',
-  '/shipments':               'Shipments',
-  '/ndr':                     'NDR Exception Log',
-  '/rto':                     'Returns (RTO)',
-  '/wallet':                  'Wallet',
-  '/billing':                 'Billing & Invoices',
-  '/settings/company':        'Company Profile',
-  '/settings/addresses':      'Pickup Addresses',
-  '/settings/roles':          'Roles & Permissions',
-  '/settings/couriers':       'Courier Providers',
-  '/settings/subscription':   'Subscription Plan',
-  '/settings/notifications':  'Notification Settings',
+const PAGE_LABELS: Record<string, string> = {
+  '/dashboard': 'Dashboard', '/orders': 'Orders',
+  '/shipments': 'Shipments & Tracking', '/ndr': 'NDR Exceptions',
+  '/rto': 'Returns (RTO)', '/wallet': 'Wallet & Topups',
+  '/billing': 'Billing & Invoices', '/analytics': 'Analytics',
+  '/integrations': 'Integrations', '/support': 'Support',
+  '/settings': 'Settings', '/settings/company': 'Company Profile',
+  '/settings/addresses': 'Pickup Addresses', '/settings/roles': 'Roles & Permissions',
+  '/settings/couriers': 'Courier Preferences', '/settings/subscription': 'Subscription Plan',
 };
 
-function getPageTitle(pathname: string): string {
-  if (pageTitles[pathname]) return pageTitles[pathname];
-  for (const key of Object.keys(pageTitles)) {
-    if (pathname.startsWith(key + '/')) return pageTitles[key];
-  }
-  return 'ShippingSaaS';
+function getPageLabel(pathname: string): string {
+  if (PAGE_LABELS[pathname]) return PAGE_LABELS[pathname];
+  const keys = Object.keys(PAGE_LABELS).sort((a, b) => b.length - a.length);
+  for (const k of keys) if (pathname.startsWith(k + '/') || pathname.startsWith(k)) return PAGE_LABELS[k];
+  return 'Seller Workspace';
 }
 
 export function TopBar() {
   const pathname = usePathname();
-  const { user }  = useAuth();
-  const title      = getPageTitle(pathname);
+  const { user } = useAuth();
+  const dateStr = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
 
   return (
-    <header className="flex items-center justify-between h-[60px] px-6 flex-shrink-0 sticky top-0 z-20
-      bg-white/80 dark:bg-[#0f1117]/80 backdrop-blur-sm
-      border-b border-slate-200 dark:border-white/[0.06]">
+    <header className="h-[58px] flex items-center px-6 gap-4 bg-white flex-shrink-0 z-20 sticky top-0"
+      style={{ borderBottom: '1px solid #e2e6ef', boxShadow: '0 1px 0 0 #e2e6ef' }}>
 
-      {/* Page title */}
-      <div>
-        <h1 className="text-slate-900 dark:text-white font-semibold text-base tracking-tight">{title}</h1>
-        {user && (
-          <p className="text-slate-400 dark:text-slate-500 text-[11px] mt-0.5 flex items-center gap-1.5">
-            <Building2 className="w-3 h-3" />
-            <span className="capitalize">{user.role.name} account</span>
-          </p>
-        )}
+      <div className="flex-1 min-w-0">
+        <h1 className="text-[14px] font-semibold text-[#0a0d14] leading-tight tracking-tight">{getPageLabel(pathname)}</h1>
+        <p className="text-[10.5px] text-[#9ca3af] font-medium leading-none mt-0.5">{dateStr}</p>
       </div>
 
-      {/* Right side */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 ml-auto">
+        <Link href="/wallet"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#e2e6ef] bg-white text-[#374151] hover:bg-[#f4f6fa] transition-all text-[11.5px] font-semibold">
+          <Wallet className="w-3.5 h-3.5 text-[#2563eb]" />
+          Recharge
+        </Link>
+
         <NotificationBell />
 
         {user && (
-          <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200 dark:border-white/[0.07]">
-            <div className="flex items-center justify-center w-8 h-8 rounded-xl
-              bg-indigo-50 dark:bg-gradient-to-br dark:from-indigo-500/20 dark:to-violet-600/20
-              border border-indigo-200 dark:border-indigo-500/20">
-              <span className="text-indigo-600 dark:text-indigo-300 text-xs font-bold uppercase">
-                {user.name.charAt(0)}
-              </span>
+          <div className="flex items-center gap-2 pl-2 border-l border-[#e2e6ef]">
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg font-bold text-xs text-white flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' }}>
+              {(user.name || 'U')[0].toUpperCase()}
             </div>
             <div className="hidden sm:block">
-              <p className="text-slate-800 dark:text-slate-200 text-xs font-semibold leading-none">{user.name}</p>
-              <p className="text-slate-400 dark:text-slate-500 text-[10px] mt-0.5 capitalize">{user.role.name}</p>
+              <p className="text-[12px] font-semibold leading-none text-[#0a0d14]">{user.name}</p>
+              <p className="text-[10px] mt-0.5 leading-none capitalize text-[#9ca3af]">
+                {user.role?.name || (typeof user.role === 'string' ? user.role : 'Owner')}
+              </p>
             </div>
           </div>
         )}

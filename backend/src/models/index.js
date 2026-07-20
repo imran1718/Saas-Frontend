@@ -62,6 +62,10 @@ const WeightDiscrepancyDispute = require('./weightDiscrepancyDispute.model');
 const SubUser = require('./subUser.model');
 const CarrierMarginConfig = require('./carrierMarginConfig.model');
 
+// Module 21 — Payment Gateways & Wallet Recharge
+const PaymentGateway = require('./paymentGateway.model');
+const WalletRechargeTransaction = require('./walletRechargeTransaction.model');
+
 // Platform Models
 const PlatformAdmin = require('./platformAdmin.model');
 const PlatformPermission = require('./platformPermission.model');
@@ -69,6 +73,16 @@ const PlatformRolePermission = require('./platformRolePermission.model');
 const PlatformAuditLog = require('./platformAuditLog.model');
 const ImpersonationSession = require('./impersonationSession.model');
 const PlatformRefreshToken = require('./platformRefreshToken.model');
+
+// Register Associations for WalletRechargeTransaction
+Tenant.hasMany(WalletRechargeTransaction, { foreignKey: 'tenant_id', as: 'rechargeTransactions', onDelete: 'CASCADE' });
+WalletRechargeTransaction.belongsTo(Tenant, { foreignKey: 'tenant_id', as: 'tenant' });
+
+User.hasMany(WalletRechargeTransaction, { foreignKey: 'user_id', as: 'rechargeTransactions', onDelete: 'CASCADE' });
+WalletRechargeTransaction.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+PaymentGateway.hasMany(WalletRechargeTransaction, { foreignKey: 'gateway_id', as: 'transactions' });
+WalletRechargeTransaction.belongsTo(PaymentGateway, { foreignKey: 'gateway_id', as: 'gateway' });
 
 // --- Associations ---
 
@@ -510,4 +524,6 @@ module.exports = {
   WeightDiscrepancyDispute,
   SubUser,
   CarrierMarginConfig,
+  PaymentGateway,
+  WalletRechargeTransaction,
 };

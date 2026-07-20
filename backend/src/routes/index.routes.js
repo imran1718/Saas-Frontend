@@ -63,6 +63,8 @@ router.use('/', rateComparisonRoutes);
 router.use('/shipments', shipmentRoutes);
 router.use('/webhooks/wallet', walletWebhookRoutes);
 router.use('/webhooks/inbound', webhookRoutes); // Moved to /inbound to prevent collision with tenant webhooks
+router.use('/webhooks', require('./paymentWebhook.routes')); // Payment gateway webhooks (/webhooks/payments/:provider)
+router.use('/platform', require('./platformPaymentGateway.routes')); // Admin Payment Gateway config & recharge transactions
 
 // Developer API (API Keys & Webhooks)
 router.use('/api-keys', apiKeyRoutes);
@@ -106,7 +108,7 @@ router.use('/platform/carrier-margins', carrierMarginConfigRoutes);
 router.use('/dpdp', require('./dpdp.routes'));
 
 // Module 20 — Advanced Platform Layer
-router.use('/wallet/recharge', require('./walletRecharge.routes'));
+router.use('/wallet/recharge', require('./tenantWalletRecharge.routes'));
 router.use('/integrations/storefront', require('./storefrontConnection.routes'));
 router.use('/platform/whatsapp', require('./whatsappBspConfig.routes'));
 router.use('/seller-webhooks', require('./sellerWebhook.routes'));
