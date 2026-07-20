@@ -12,11 +12,12 @@ const login = async (req, res, next) => {
       return success(res, result, 200);
     }
 
-    // Set refresh token in HttpOnly cookie
+    // Set refresh token in HttpOnly cookie shared across *.nanoshipy.com
     res.cookie('platform_refresh_token', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.NODE_ENV === 'production' ? '.nanoshipy.com' : undefined,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -40,7 +41,8 @@ const verify2FA = async (req, res, next) => {
     res.cookie('platform_refresh_token', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.NODE_ENV === 'production' ? '.nanoshipy.com' : undefined,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -97,7 +99,8 @@ const refresh = async (req, res, next) => {
       res.cookie('platform_refresh_token', result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        domain: process.env.NODE_ENV === 'production' ? '.nanoshipy.com' : undefined,
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
     }

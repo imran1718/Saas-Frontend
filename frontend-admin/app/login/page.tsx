@@ -8,8 +8,8 @@ import toast from 'react-hot-toast';
 
 export default function PlatformLoginPage() {
   const { setAuth } = useAuth();
-  const [email, setEmail]         = useState('admin@shippingsaas.com');
-  const [password, setPassword]   = useState('Admin123!');
+  const [email, setEmail]         = useState('admin@nanoshipy.com');
+  const [password, setPassword]   = useState('');
   const [showPass, setShowPass]   = useState(false);
   const [totpToken, setTotpToken] = useState('');
   const [stage, setStage]         = useState<'credentials' | '2fa'>('credentials');
@@ -24,13 +24,18 @@ export default function PlatformLoginPage() {
       if (res.data.success && res.data.data.access_token) {
         setAuth(res.data.data.admin, res.data.data.access_token);
         toast.success('Signed in as Platform Superadmin');
-        window.location.href = '/dashboard';
-      } else if (res.data.data?.status === '2fa_required') {
+        // Small delay to let cookie propagate, then redirect
+        setTimeout(() => { window.location.href = '/dashboard'; }, 300);
+      } else if (res.data.data?.requires_2fa) {
         setTempToken(res.data.data.temp_token);
         setStage('2fa');
+        toast('2FA required — enter your code below');
+      } else {
+        toast.error('Login failed — unexpected response from server');
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error?.message || 'Admin login failed. Check credentials.');
+      const msg = err.response?.data?.error?.message || 'Admin login failed. Check credentials.';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
