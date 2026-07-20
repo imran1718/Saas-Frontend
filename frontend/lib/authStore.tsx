@@ -7,6 +7,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   role: { id: string; name: string };
   tenant_id: string;
   permissions: string[];
